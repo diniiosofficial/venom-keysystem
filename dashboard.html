@@ -26,7 +26,7 @@ body{
 
 .topbar{
 
-    height:75px;
+    min-height:75px;
 
     background:#121212;
 
@@ -36,9 +36,13 @@ body{
 
     align-items:center;
 
-    padding:0 25px;
+    padding:15px 25px;
 
     border-bottom:1px solid #1f1f1f;
+
+    flex-wrap:wrap;
+
+    gap:15px;
 }
 
 .logo{
@@ -55,6 +59,8 @@ body{
     display:flex;
 
     gap:12px;
+
+    flex-wrap:wrap;
 }
 
 .top-btn{
@@ -74,6 +80,13 @@ body{
     font-size:14px;
 
     font-weight:bold;
+
+    transition:0.2s;
+}
+
+.top-btn:hover{
+
+    opacity:0.8;
 }
 
 .logout{
@@ -142,7 +155,7 @@ body{
 
     border-radius:16px;
 
-    overflow:hidden;
+    overflow:auto;
 
     border:1px solid #1d1d1d;
 }
@@ -163,6 +176,8 @@ table{
     width:100%;
 
     border-collapse:collapse;
+
+    min-width:900px;
 }
 
 th{
@@ -235,9 +250,18 @@ tr:hover{
 
     margin-right:6px;
 
+    margin-bottom:5px;
+
     font-size:12px;
 
     font-weight:bold;
+
+    transition:0.2s;
+}
+
+.action-btn:hover{
+
+    opacity:0.8;
 }
 
 .disable-btn{
@@ -262,28 +286,17 @@ tr:hover{
 
         flex-direction:column;
 
-        height:auto;
-
-        gap:15px;
-
-        padding:20px;
+        align-items:flex-start;
     }
 
     .top-buttons{
 
         width:100%;
-
-        flex-wrap:wrap;
     }
 
     .top-btn{
 
-        width:100%;
-    }
-
-    .table-box{
-
-        overflow:auto;
+        flex:1;
     }
 }
 
@@ -482,21 +495,77 @@ async function deleteKey(key){
 
         if(data.success){
 
-    alert(
-        'Key Deletion Completed Successfully'
-    );
+            alert(
+                'Key Deletion Completed Successfully'
+            );
 
-    loadStats();
+            loadStats();
 
-    loadKeys();
+            loadKeys();
 
-}else{
+        }else{
 
-    alert(
-        data.message ||
-        'Delete Failed'
-    );
+            alert(
+                data.message ||
+                'Delete Failed'
+            );
+        }
+
+    }catch(e){
+
+        console.log(e);
+
+        alert(
+            'Server Error'
+        );
+    }
 }
+
+// ----------------------------------
+// TOGGLE KEY
+// ----------------------------------
+
+async function toggleKey(key){
+
+    try{
+
+        const res =
+            await fetch(
+                '/api/toggle-key',
+                {
+                    method:'POST',
+
+                    headers:{
+                        'Content-Type':
+                        'application/json'
+                    },
+
+                    body:JSON.stringify({
+                        key
+                    })
+                }
+            );
+
+        const data =
+            await res.json();
+
+        if(data.success){
+
+            alert(
+                'Key Status Updated'
+            );
+
+            loadKeys();
+
+            loadStats();
+
+        }else{
+
+            alert(
+                data.message ||
+                'Update Failed'
+            );
+        }
 
     }catch(e){
 
@@ -577,21 +646,44 @@ async function loadKeys(){
 
             let devicesUsed = 0;
 
-            if(
-                key.hwids &&
+            let hwids = [];
+
+            // PARSE HWIDS
+
+            if(typeof key.hwids === 'string'){
+
+                try{
+
+                    hwids =
+                        JSON.parse(
+                            key.hwids
+                        );
+
+                }catch{
+
+                    hwids = [];
+                }
+
+            }else if(
                 Array.isArray(
                     key.hwids
                 )
             ){
 
-                devicesUsed =
-                    key.hwids.length;
+                hwids =
+                    key.hwids;
             }
+
+            devicesUsed =
+                hwids.length;
 
             // STATUS
 
             let statusClass =
                 "active";
+
+            let displayStatus =
+                key.status;
 
             if(
                 key.status ===
@@ -614,6 +706,9 @@ async function loadKeys(){
 
                 statusClass =
                     "expired";
+
+                displayStatus =
+                    "expired";
             }
 
             table.innerHTML += `
@@ -626,7 +721,7 @@ async function loadKeys(){
 
                 <td
                 class="${statusClass}">
-                    ${key.status}
+                    ${displayStatus}
                 </td>
 
                 <td>
@@ -644,13 +739,18 @@ async function loadKeys(){
                 <td>
 
                     <button
-                    class="action-btn disable-btn">
-                        Disable
-                    </button>
-
-                    <button
-                    class="action-btn reset-btn">
-                        Reset
+                    class="action-btn disable-btn"
+                    onclick="
+                    toggleKey(
+                    '${key.license_key}'
+                    )
+                    ">
+                        ${
+                            key.status ===
+                            'active'
+                            ? 'Disable'
+                            : 'Enable'
+                        }
                     </button>
 
                     <button
@@ -674,6 +774,18 @@ async function loadKeys(){
         console.log(e);
     }
 }
+
+// ----------------------------------
+// AUTO REFRESH
+// ----------------------------------
+
+setInterval(() => {
+
+    loadStats();
+
+    loadKeys();
+
+}, 10000);
 
 // ----------------------------------
 // INIT
