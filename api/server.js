@@ -6,7 +6,7 @@ module.exports = async (req, res) => {
   try {
 
     // ---------------------------------
-    // API TEST
+    // API ONLINE CHECK
     // ---------------------------------
 
     if (req.method === 'GET') {
@@ -59,7 +59,7 @@ module.exports = async (req, res) => {
     console.log("BODY:", body);
 
     // ---------------------------------
-    // READ KEY / HWID
+    // GET KEY / HWID
     // ---------------------------------
 
     const key = (
@@ -132,7 +132,10 @@ module.exports = async (req, res) => {
     // STATUS CHECK
     // ---------------------------------
 
-    if (row.status !== 'active') {
+    if (
+      row.status &&
+      row.status.toLowerCase() !== 'active'
+    ) {
 
       console.log("KEY DISABLED");
 
@@ -194,7 +197,7 @@ module.exports = async (req, res) => {
     }
 
     // ---------------------------------
-    // SAVE LOGIN
+    // SAVE USER LOGIN
     // ---------------------------------
 
     const ip =
@@ -202,15 +205,22 @@ module.exports = async (req, res) => {
       req.socket?.remoteAddress ||
       'unknown';
 
-    await pool.query(
-      'INSERT INTO users (license_key, hwid, ip_address) VALUES ($1, $2, $3)',
-      [key, hwid, ip]
-    );
+    try {
 
-    console.log("USER SAVED");
+      await pool.query(
+        'INSERT INTO users (license_key, hwid, ip_address) VALUES ($1, $2, $3)',
+        [key, hwid, ip]
+      );
+
+      console.log("USER SAVED");
+
+    } catch (e) {
+
+      console.log("USER SAVE ERROR:", e.message);
+    }
 
     // ---------------------------------
-    // TOKEN
+    // TOKEN GENERATION
     // ---------------------------------
 
     const token = crypto
@@ -221,6 +231,24 @@ module.exports = async (req, res) => {
     console.log("LOGIN SUCCESS");
 
     // ---------------------------------
+    // FORMAT EXP DATE
+    // ---------------------------------
+
+    let expString = '';
+
+    try {
+
+      expString = new Date(row.expires_at)
+        .toLocaleString('en-IN', {
+          timeZone: 'Asia/Kolkata'
+        });
+
+    } catch {
+
+      expString = String(row.expires_at);
+    }
+
+    // ---------------------------------
     // SUCCESS RESPONSE
     // ---------------------------------
 
@@ -228,7 +256,10 @@ module.exports = async (req, res) => {
       status: true,
       data: {
         token,
-        rng: Math.floor(Date.now() / 1000)
+        rng: Math.floor(Date.now() / 1000),
+        EXP: expString,
+        expiry: expString,
+        key: key
       }
     });
 
@@ -238,7 +269,7 @@ module.exports = async (req, res) => {
 
     return res.json({
       status: false,
-      reason: e.message
+      reason: e.message || 'Unknown Error'
     });
   }
 };
