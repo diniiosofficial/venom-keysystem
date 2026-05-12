@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>VENOM DASHBOARD</title>
+
+<style>
+
+body{
+    margin:0;
+    background:#0d0d0d;
+    color:white;
+    font-family:Arial;
+}
+
+.topbar{
+    padding:20px;
+    background:#151515;
+    font-size:22px;
+    font-weight:bold;
+}
+
+.container{
+    padding:20px;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:20px;
+    margin-bottom:30px;
+}
+
+.card{
+    background:#151515;
+    padding:25px;
+    border-radius:14px;
+}
+
+.card h2{
+    margin:0;
+    font-size:15px;
+    color:#aaa;
+}
+
+.card span{
+    font-size:32px;
+    font-weight:bold;
+}
+
+.table-box{
+    background:#151515;
+    padding:20px;
+    border-radius:14px;
+    overflow:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:#1f1f1f;
+    padding:15px;
+    text-align:left;
+}
+
+td{
+    padding:15px;
+    border-top:1px solid #222;
+}
+
+button{
+    border:none;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    color:white;
+    margin-right:5px;
+}
+
+.delete{
+    background:red;
+}
+
+.disable{
+    background:orange;
+}
+
+.reset{
+    background:#0099ff;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="topbar">
+    VENOM DASHBOARD
+</div>
+
+<div class="container">
+
+    <!-- STATS -->
+
+    <div class="stats">
+
+        <div class="card">
+            <h2>Total Keys</h2>
+            <span id="totalKeys">0</span>
+        </div>
+
+        <div class="card">
+            <h2>Active Keys</h2>
+            <span id="activeKeys">0</span>
+        </div>
+
+        <div class="card">
+            <h2>Expired Keys</h2>
+            <span id="expiredKeys">0</span>
+        </div>
+
+        <div class="card">
+            <h2>Total Users</h2>
+            <span id="totalUsers">0</span>
+        </div>
+
+    </div>
+
+    <!-- TABLE -->
+
+    <div class="table-box">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>KEY</th>
+                    <th>STATUS</th>
+                    <th>DEVICES</th>
+                    <th>EXPIRY</th>
+                    <th>ACTIONS</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="keyTable">
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script>
+
+if(
+    localStorage.getItem(
+        "venom_admin"
+    ) !== "true"
+){
+    window.location =
+        "/admin.html";
+}
+
+// DEMO DATA
+
+document.getElementById(
+    "totalKeys"
+).innerText = "25";
+
+document.getElementById(
+    "activeKeys"
+).innerText = "20";
+
+document.getElementById(
+    "expiredKeys"
+).innerText = "3";
+
+document.getElementById(
+    "totalUsers"
+).innerText = "40";
+
+// DEMO TABLE
+
+document.getElementById(
+    "keyTable"
+).innerHTML += `
+
+<tr>
+
+<td>VENOM-TEST-001</td>
+
+<td>ACTIVE</td>
+
+<td>1 / 2</td>
+
+<td>30 DAYS</td>
+
+<td>
+
+<button class="disable">
+DISABLE
+</button>
+
+<button class="reset">
+RESET
+</button>
+
+<button class="delete">
+DELETE
+</button>
+
+</td>
+
+</tr>
+`;
+
+</script>
+
+</body>
+</html>
