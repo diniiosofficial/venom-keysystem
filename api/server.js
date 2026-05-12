@@ -6,15 +6,298 @@ module.exports = async (req, res) => {
   try {
 
     // ---------------------------------
-    // API ONLINE CHECK
+    // VENOM LANDING PAGE
     // ---------------------------------
 
     if (req.method === 'GET') {
 
-      return res.json({
-        status: false,
-        reason: 'API Online'
-      });
+      return res.send(`
+
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>VENOM API</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    background:#050505;
+
+    color:white;
+
+    font-family:Arial;
+
+    height:100vh;
+
+    overflow:hidden;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    position:relative;
+}
+
+.glow{
+
+    position:absolute;
+
+    width:500px;
+
+    height:500px;
+
+    background:#0099ff;
+
+    filter:blur(180px);
+
+    opacity:0.2;
+
+    border-radius:50%;
+
+    animation:move 6s infinite alternate ease-in-out;
+}
+
+@keyframes move{
+
+    from{
+        transform:translate(-100px,-50px);
+    }
+
+    to{
+        transform:translate(100px,50px);
+    }
+}
+
+.card{
+
+    position:relative;
+
+    z-index:2;
+
+    width:90%;
+
+    max-width:700px;
+
+    background:rgba(20,20,20,0.92);
+
+    border:1px solid rgba(255,255,255,0.08);
+
+    border-radius:24px;
+
+    padding:50px;
+
+    text-align:center;
+
+    backdrop-filter:blur(10px);
+
+    box-shadow:
+    0 0 40px rgba(0,153,255,0.15);
+}
+
+.logo{
+
+    font-size:48px;
+
+    font-weight:bold;
+
+    letter-spacing:4px;
+
+    margin-bottom:10px;
+
+    background:linear-gradient(
+        90deg,
+        #00aaff,
+        #ffffff
+    );
+
+    -webkit-background-clip:text;
+
+    -webkit-text-fill-color:transparent;
+}
+
+.subtitle{
+
+    color:#9f9f9f;
+
+    font-size:16px;
+
+    margin-bottom:35px;
+
+    line-height:1.6;
+}
+
+.status{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    background:#0f1d13;
+
+    color:#00ff88;
+
+    padding:14px 22px;
+
+    border-radius:12px;
+
+    font-weight:bold;
+
+    margin-bottom:30px;
+}
+
+.dot{
+
+    width:10px;
+
+    height:10px;
+
+    background:#00ff88;
+
+    border-radius:50%;
+
+    box-shadow:0 0 12px #00ff88;
+}
+
+.info-box{
+
+    background:#101010;
+
+    border:1px solid #1d1d1d;
+
+    border-radius:16px;
+
+    padding:20px;
+
+    margin-top:20px;
+
+    text-align:left;
+}
+
+.info-title{
+
+    font-size:15px;
+
+    color:#00aaff;
+
+    margin-bottom:15px;
+
+    font-weight:bold;
+}
+
+.info-item{
+
+    color:#d0d0d0;
+
+    margin-bottom:10px;
+
+    font-size:14px;
+}
+
+.credit{
+
+    margin-top:35px;
+
+    font-size:14px;
+
+    color:#7a7a7a;
+}
+
+.credit span{
+
+    color:#00aaff;
+
+    font-weight:bold;
+}
+
+.footer{
+
+    margin-top:20px;
+
+    font-size:12px;
+
+    color:#555;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="glow"></div>
+
+<div class="card">
+
+    <div class="logo">
+        VENOM API
+    </div>
+
+    <div class="subtitle">
+        Secure Authentication Server <br>
+        Real-Time License Management System
+    </div>
+
+    <div class="status">
+
+        <div class="dot"></div>
+
+        SERVER ONLINE
+
+    </div>
+
+    <div class="info-box">
+
+        <div class="info-title">
+            SYSTEM STATUS
+        </div>
+
+        <div class="info-item">
+            • Authentication Service Running
+        </div>
+
+        <div class="info-item">
+            • Database Connected Successfully
+        </div>
+
+        <div class="info-item">
+            • License Validation Active
+        </div>
+
+        <div class="info-item">
+            • Device Lock System Enabled
+        </div>
+
+    </div>
+
+    <div class="credit">
+        Developed By <span>@LegacyDevX</span>
+    </div>
+
+    <div class="footer">
+        VENOM SECURITY © 2026
+    </div>
+
+</div>
+
+</body>
+</html>
+
+      `);
     }
 
     // ---------------------------------
@@ -22,8 +305,6 @@ module.exports = async (req, res) => {
     // ---------------------------------
 
     let body = req.body || {};
-
-    // JSON STRING SUPPORT
 
     if (typeof body === 'string') {
 
@@ -34,7 +315,9 @@ module.exports = async (req, res) => {
       } catch {}
     }
 
+    // ---------------------------------
     // RAW FORM SUPPORT
+    // ---------------------------------
 
     if (
       req.method === 'POST' &&
@@ -176,8 +459,6 @@ module.exports = async (req, res) => {
     let hwids =
       row.hwids || [];
 
-    // STRING -> JSON
-
     if (
       typeof hwids === 'string'
     ) {
@@ -192,8 +473,6 @@ module.exports = async (req, res) => {
         hwids = [];
       }
     }
-
-    // SAFETY
 
     if (
       !Array.isArray(hwids)
