@@ -482,21 +482,21 @@ async function deleteKey(key){
 
         if(data.success){
 
-            alert(
-                'Key Deleted'
-            );
+    alert(
+        'Key Deletion Completed Successfully'
+    );
 
-            loadStats();
+    loadStats();
 
-            loadKeys();
+    loadKeys();
 
-        }else{
+}else{
 
-            alert(
-                data.message ||
-                'Delete Failed'
-            );
-        }
+    alert(
+        data.message ||
+        'Delete Failed'
+    );
+}
 
     }catch(e){
 
