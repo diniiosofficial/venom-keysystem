@@ -445,6 +445,70 @@ function logout(){
 }
 
 // ----------------------------------
+// DELETE KEY
+// ----------------------------------
+
+async function deleteKey(key){
+
+    const confirmDelete =
+        confirm(
+            'Delete Key?'
+        );
+
+    if(!confirmDelete)
+        return;
+
+    try{
+
+        const res =
+            await fetch(
+                '/api/delete-key',
+                {
+                    method:'POST',
+
+                    headers:{
+                        'Content-Type':
+                        'application/json'
+                    },
+
+                    body:JSON.stringify({
+                        key
+                    })
+                }
+            );
+
+        const data =
+            await res.json();
+
+        if(data.success){
+
+            alert(
+                'Key Deleted'
+            );
+
+            loadStats();
+
+            loadKeys();
+
+        }else{
+
+            alert(
+                data.message ||
+                'Delete Failed'
+            );
+        }
+
+    }catch(e){
+
+        console.log(e);
+
+        alert(
+            'Server Error'
+        );
+    }
+}
+
+// ----------------------------------
 // LOAD STATS
 // ----------------------------------
 
@@ -590,7 +654,12 @@ async function loadKeys(){
                     </button>
 
                     <button
-                    class="action-btn delete-btn">
+                    class="action-btn delete-btn"
+                    onclick="
+                    deleteKey(
+                    '${key.license_key}'
+                    )
+                    ">
                         Delete
                     </button>
 
