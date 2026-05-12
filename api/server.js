@@ -5,31 +5,39 @@ module.exports = async (req, res) => {
 
   try {
 
-    // Browser/API test
+    // ---------------------------------
+    // API TEST
+    // ---------------------------------
+
     if (req.method === 'GET') {
+
       return res.json({
         status: false,
         reason: 'API Online'
       });
     }
 
-    // -----------------------------
+    // ---------------------------------
     // READ BODY SAFELY
-    // -----------------------------
+    // ---------------------------------
 
     let body = req.body || {};
 
-    // JSON string support
+    // JSON STRING SUPPORT
     if (typeof body === 'string') {
+
       try {
         body = JSON.parse(body);
       } catch {}
     }
 
-    // Raw form-urlencoded support
+    // RAW FORM SUPPORT
     if (
       req.method === 'POST' &&
-      (!req.body || Object.keys(req.body).length === 0)
+      (
+        !req.body ||
+        Object.keys(req.body).length === 0
+      )
     ) {
 
       let raw = '';
@@ -50,33 +58,46 @@ module.exports = async (req, res) => {
 
     console.log("BODY:", body);
 
-    // -----------------------------
-    // SUPPORT MULTIPLE PARAM NAMES
-    // -----------------------------
+    // ---------------------------------
+    // READ KEY / HWID
+    // ---------------------------------
 
-    const key =
+    const key = (
       body.key ||
       body.game ||
       body.user_key ||
       body.token ||
-      '';
+      body.license ||
+      ''
+    )
+    .toString()
+    .trim();
 
-    const hwid =
+    const hwid = (
       body.hwid ||
       body.serial ||
       body.device_id ||
       body.uuid ||
       body.device ||
-      '';
+      body.android_id ||
+      ''
+    )
+    .toString()
+    .trim();
 
     console.log("KEY:", key);
-    console.log("HWID:", hwid);
+    console.log("KEY LENGTH:", key.length);
 
-    // -----------------------------
+    console.log("HWID:", hwid);
+    console.log("HWID LENGTH:", hwid.length);
+
+    // ---------------------------------
     // VALIDATION
-    // -----------------------------
+    // ---------------------------------
 
     if (!key || !hwid) {
+
+      console.log("INVALID REQUEST");
 
       return res.json({
         status: false,
@@ -84,16 +105,20 @@ module.exports = async (req, res) => {
       });
     }
 
-    // -----------------------------
-    // CHECK KEY
-    // -----------------------------
+    // ---------------------------------
+    // DATABASE CHECK
+    // ---------------------------------
 
     const result = await pool.query(
-      'SELECT * FROM keys WHERE license_key=$1 LIMIT 1',
+      'SELECT * FROM keys WHERE TRIM(license_key)=$1 LIMIT 1',
       [key]
     );
 
+    console.log("DB RESULT:", result.rows);
+
     if (result.rows.length <= 0) {
+
+      console.log("INVALID KEY");
 
       return res.json({
         status: false,
@@ -103,11 +128,13 @@ module.exports = async (req, res) => {
 
     const row = result.rows[0];
 
-    // -----------------------------
+    // ---------------------------------
     // STATUS CHECK
-    // -----------------------------
+    // ---------------------------------
 
     if (row.status !== 'active') {
+
+      console.log("KEY DISABLED");
 
       return res.json({
         status: false,
@@ -115,13 +142,18 @@ module.exports = async (req, res) => {
       });
     }
 
-    // -----------------------------
+    // ---------------------------------
     // EXPIRY CHECK
-    // -----------------------------
+    // ---------------------------------
 
     const expire = new Date(row.expires_at).getTime();
 
+    console.log("EXPIRE:", expire);
+    console.log("NOW:", Date.now());
+
     if (Date.now() > expire) {
+
+      console.log("KEY EXPIRED");
 
       return res.json({
         status: false,
@@ -129,11 +161,15 @@ module.exports = async (req, res) => {
       });
     }
 
-    // -----------------------------
-    // HWID LOCK
-    // -----------------------------
+    // ---------------------------------
+    // HWID CHECK
+    // ---------------------------------
 
-    if (!row.hwid) {
+    const savedHwid = (row.hwid || '')
+      .toString()
+      .trim();
+
+    if (!savedHwid) {
 
       await pool.query(
         'UPDATE keys SET hwid=$1 WHERE license_key=$2',
@@ -144,7 +180,11 @@ module.exports = async (req, res) => {
 
     } else {
 
-      if (row.hwid !== hwid) {
+      console.log("SAVED HWID:", savedHwid);
+
+      if (savedHwid !== hwid) {
+
+        console.log("HWID MISMATCH");
 
         return res.json({
           status: false,
@@ -153,9 +193,9 @@ module.exports = async (req, res) => {
       }
     }
 
-    // -----------------------------
-    // SAVE USER LOGIN
-    // -----------------------------
+    // ---------------------------------
+    // SAVE LOGIN
+    // ---------------------------------
 
     const ip =
       req.headers['x-forwarded-for'] ||
@@ -167,18 +207,22 @@ module.exports = async (req, res) => {
       [key, hwid, ip]
     );
 
-    // -----------------------------
-    // TOKEN GENERATION
-    // -----------------------------
+    console.log("USER SAVED");
+
+    // ---------------------------------
+    // TOKEN
+    // ---------------------------------
 
     const token = crypto
       .createHash('md5')
       .update(key + hwid)
       .digest('hex');
 
-    // -----------------------------
+    console.log("LOGIN SUCCESS");
+
+    // ---------------------------------
     // SUCCESS RESPONSE
-    // -----------------------------
+    // ---------------------------------
 
     return res.json({
       status: true,
