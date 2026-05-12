@@ -6,40 +6,123 @@
     <title>VENOM KEY GENERATOR</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #00d4ff;
-            --primary-dim: rgba(0, 212, 255, 0.1);
-            --primary-glow: rgba(0, 212, 255, 0.4);
-            --bg: #050508;
-            --surface: rgba(15, 15, 25, 0.6);
-            --surface-border: rgba(255, 255, 255, 0.06);
-            --text: #e8e8f0;
-            --text-dim: #8b8b9e;
+            --bg: #020204;
+            --surface: rgba(12, 12, 22, 0.65);
+            --surface-elevated: rgba(18, 18, 32, 0.8);
+            --primary: #00f0ff;
+            --primary-dim: rgba(0, 240, 255, 0.08);
+            --primary-glow: rgba(0, 240, 255, 0.3);
+            --accent: #ffd700;
+            --accent-dim: rgba(255, 215, 0, 0.1);
+            --text: #f0f0f5;
+            --text-dim: #6b6b7b;
             --success: #00ff9d;
-            --error: #ff4757;
+            --error: #ff3860;
+            --border: rgba(255, 255, 255, 0.05);
+            --border-hover: rgba(255, 255, 255, 0.12);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
 
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            position: relative;
+            overflow-x: hidden;
+            cursor: none;
         }
 
-        /* Animated background canvas */
+        /* ===== CUSTOM CURSOR ===== */
+        .cursor {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 99999;
+            mix-blend-mode: difference;
+            transition: transform 0.15s ease, width 0.3s ease, height 0.3s ease;
+            transform: translate(-50%, -50%);
+        }
+        .cursor.hover {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: 1.5px solid var(--primary);
+            mix-blend-mode: normal;
+        }
+        .cursor-trail {
+            position: fixed;
+            width: 30px;
+            height: 30px;
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 99998;
+            transform: translate(-50%, -50%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ===== PRELOADER ===== */
+        .preloader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 100000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s;
+        }
+        .preloader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+        .preloader-logo {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 40px;
+        }
+        .preloader-logo span { color: var(--primary); }
+        .preloader-bar {
+            width: 200px;
+            height: 1px;
+            background: rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .preloader-bar::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            animation: loadBar 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes loadBar {
+            0% { width: 0%; }
+            50% { width: 60%; }
+            100% { width: 100%; }
+        }
+        .preloader-percent {
+            margin-top: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.1em;
+        }
+
+        /* ===== 3D BACKGROUND CANVAS ===== */
         #bg-canvas {
             position: fixed;
             top: 0;
@@ -50,282 +133,405 @@
             pointer-events: none;
         }
 
-        /* Ambient orbs */
-        .orb {
+        /* ===== NOISE OVERLAY ===== */
+        .noise {
             position: fixed;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.15;
+            inset: 0;
+            z-index: 1;
             pointer-events: none;
-            z-index: 0;
-            animation: orbFloat 20s ease-in-out infinite;
+            opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-size: 256px 256px;
         }
 
-        .orb-1 {
-            width: 500px;
-            height: 500px;
-            background: var(--primary);
-            top: -10%;
-            left: -10%;
-            animation-delay: 0s;
+        /* ===== VIGNETTE ===== */
+        .vignette {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 0%, transparent 40%, rgba(0,0,0,0.6) 100%);
         }
 
-        .orb-2 {
+        /* ===== FLOATING GEOMETRIC SHAPES ===== */
+        .geo-shape {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.04;
+        }
+        .geo-ring {
             width: 400px;
             height: 400px;
-            background: #7c3aed;
-            bottom: -10%;
-            right: -10%;
-            animation-delay: -7s;
+            border: 1px solid var(--primary);
+            border-radius: 50%;
+            top: 10%;
+            right: -100px;
+            animation: geoFloat1 25s ease-in-out infinite;
         }
-
-        .orb-3 {
+        .geo-ring-2 {
             width: 300px;
             height: 300px;
-            background: #00ff9d;
-            top: 50%;
-            left: 50%;
-            animation-delay: -14s;
+            border: 1px solid var(--accent);
+            border-radius: 50%;
+            bottom: 15%;
+            left: -80px;
+            animation: geoFloat2 30s ease-in-out infinite;
+        }
+        .geo-diamond {
+            width: 150px;
+            height: 150px;
+            border: 1px solid var(--primary);
+            transform: rotate(45deg);
+            top: 60%;
+            right: 15%;
+            animation: geoFloat3 20s ease-in-out infinite;
+        }
+        @keyframes geoFloat1 {
+            0%, 100% { transform: translate(0,0) rotate(0deg); }
+            33% { transform: translate(-30px, 40px) rotate(120deg); }
+            66% { transform: translate(20px, -20px) rotate(240deg); }
+        }
+        @keyframes geoFloat2 {
+            0%, 100% { transform: translate(0,0) rotate(0deg); }
+            50% { transform: translate(40px, -30px) rotate(180deg); }
+        }
+        @keyframes geoFloat3 {
+            0%, 100% { transform: translate(0,0) rotate(45deg); }
+            50% { transform: translate(-20px, 30px) rotate(225deg); }
         }
 
-        @keyframes orbFloat {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            25% { transform: translate(50px, -30px) scale(1.1); }
-            50% { transform: translate(-30px, 50px) scale(0.9); }
-            75% { transform: translate(30px, 30px) scale(1.05); }
-        }
-
-        /* Main card */
-        .card {
+        /* ===== MAIN LAYOUT ===== */
+        .main-wrap {
             position: relative;
             z-index: 10;
-            width: 480px;
-            max-width: 92vw;
-            background: var(--surface);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid var(--surface-border);
-            border-radius: 24px;
-            padding: 48px 40px;
-            box-shadow: 
-                0 0 0 1px rgba(255,255,255,0.02),
-                0 20px 60px rgba(0,0,0,0.5),
-                0 0 80px rgba(0, 212, 255, 0.05);
-            animation: cardEntry 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            transform: translateY(30px);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            perspective: 1200px;
         }
 
-        @keyframes cardEntry {
+        /* ===== 3D CARD ===== */
+        .card-3d {
+            width: 520px;
+            max-width: 95vw;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+
+        .card {
+            background: var(--surface);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 52px 44px;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.02),
+                0 25px 80px rgba(0,0,0,0.6),
+                0 0 100px rgba(0, 240, 255, 0.04);
+            animation: cardReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+        }
+
+        @keyframes cardReveal {
+            from {
+                opacity: 0;
+                transform: translateY(60px) rotateX(15deg) scale(0.92);
+            }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) rotateX(0) scale(1);
             }
         }
 
-        /* Card shine effect */
+        /* Card inner glow */
         .card::before {
             content: '';
             position: absolute;
             inset: 0;
-            border-radius: 24px;
+            border-radius: 28px;
             padding: 1.5px;
             background: linear-gradient(
-                135deg,
-                rgba(255,255,255,0.15) 0%,
-                rgba(255,255,255,0) 40%,
-                rgba(255,255,255,0) 60%,
-                rgba(255,255,255,0.08) 100%
+                160deg,
+                rgba(0, 240, 255, 0.3) 0%,
+                rgba(255, 215, 0, 0.1) 25%,
+                rgba(255,255,255,0) 50%,
+                rgba(255,255,255,0) 75%,
+                rgba(0, 240, 255, 0.15) 100%
             );
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
             pointer-events: none;
+            animation: borderShine 8s ease-in-out infinite;
         }
 
-        /* Header */
+        @keyframes borderShine {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* Card ambient light */
+        .card-light {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            top: -100px;
+            left: -100px;
+            transition: all 0.3s ease;
+        }
+
+        /* ===== HEADER ===== */
         .header {
             text-align: center;
-            margin-bottom: 36px;
+            margin-bottom: 44px;
+            position: relative;
+            z-index: 2;
         }
 
         .badge {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            background: rgba(0, 212, 255, 0.08);
-            border: 1px solid rgba(0, 212, 255, 0.15);
+            gap: 8px;
+            padding: 8px 18px;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.08), rgba(255, 215, 0, 0.04));
+            border: 1px solid rgba(0, 240, 255, 0.12);
             border-radius: 100px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.08em;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
             text-transform: uppercase;
             color: var(--primary);
-            margin-bottom: 20px;
-            animation: fadeInUp 0.6s 0.2s both;
+            margin-bottom: 28px;
+            animation: fadeSlideUp 0.8s 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
         .badge-dot {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
             background: var(--primary);
             border-radius: 50%;
-            box-shadow: 0 0 8px var(--primary);
-            animation: pulse 2s ease-in-out infinite;
+            box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary-glow);
+            animation: dotPulse 2.5s ease-in-out infinite;
         }
 
-        @keyframes pulse {
+        @keyframes dotPulse {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.8); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        .logo-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 24px;
+            position: relative;
+            animation: fadeSlideUp 0.8s 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .logo-icon svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.3));
         }
 
         h1 {
-            font-size: 32px;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            line-height: 1.1;
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            line-height: 1.05;
+            animation: fadeSlideUp 0.8s 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        h1 .line1 {
+            display: block;
             background: linear-gradient(135deg, #fff 0%, #a0a0b8 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: fadeInUp 0.6s 0.35s both;
+        }
+        h1 .line2 {
+            display: block;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-top: 2px;
         }
 
         .subtitle {
-            margin-top: 10px;
+            margin-top: 16px;
             font-size: 14px;
             color: var(--text-dim);
             font-weight: 400;
-            animation: fadeInUp 0.6s 0.45s both;
+            letter-spacing: 0.02em;
+            animation: fadeSlideUp 0.8s 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Form elements */
+        /* ===== DIVIDER ===== */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            margin: 32px 0;
+            position: relative;
+            animation: fadeSlideUp 0.8s 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .divider::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* ===== FORM ===== */
         .form-group {
-            margin-bottom: 20px;
-            animation: fadeInUp 0.6s 0.55s both;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 2;
+            animation: fadeSlideUp 0.8s 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
         .label {
-            display: block;
-            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.1em;
             color: var(--text-dim);
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             padding-left: 4px;
+        }
+        .label-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--primary);
+            opacity: 0.6;
         }
 
         .select-wrapper {
             position: relative;
         }
-
         .select-wrapper::after {
             content: '';
             position: absolute;
-            right: 18px;
+            right: 20px;
             top: 50%;
-            transform: translateY(-50%);
-            width: 10px;
-            height: 10px;
+            transform: translateY(-70%) rotate(45deg);
+            width: 8px;
+            height: 8px;
             border-right: 2px solid var(--text-dim);
             border-bottom: 2px solid var(--text-dim);
-            transform: translateY(-70%) rotate(45deg);
             pointer-events: none;
             transition: all 0.3s ease;
+        }
+        .select-wrapper:focus-within::after {
+            border-color: var(--primary);
+            transform: translateY(-70%) rotate(225deg);
         }
 
         select {
             width: 100%;
-            padding: 16px 44px 16px 18px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 14px;
+            padding: 18px 50px 18px 20px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+            border: 1px solid var(--border);
+            border-radius: 16px;
             color: var(--text);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             font-size: 15px;
             font-weight: 500;
-            cursor: pointer;
+            cursor: none;
             appearance: none;
             outline: none;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
         select:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.15);
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            border-color: var(--border-hover);
         }
-
         select:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-dim), 0 0 20px rgba(0, 212, 255, 0.1);
+            box-shadow: 0 0 0 3px var(--primary-dim), 0 0 30px rgba(0, 240, 255, 0.08);
         }
-
         select option {
-            background: #0f0f1a;
+            background: #0a0a14;
             color: var(--text);
-            padding: 12px;
+            padding: 14px;
+            font-family: 'Space Grotesk', sans-serif;
         }
 
-        /* Generate button */
+        /* ===== GENERATE BUTTON ===== */
+        .btn-wrap {
+            position: relative;
+            z-index: 2;
+            animation: fadeSlideUp 0.8s 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
         .btn-generate {
             width: 100%;
-            padding: 18px 24px;
-            margin-top: 8px;
-            background: linear-gradient(135deg, var(--primary) 0%, #0099cc 100%);
+            padding: 20px 28px;
+            background: linear-gradient(135deg, var(--primary) 0%, #00c8d4 50%, var(--accent) 100%);
+            background-size: 200% 200%;
+            animation: gradientShift 4s ease infinite;
             border: none;
-            border-radius: 14px;
+            border-radius: 16px;
             color: #000;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             font-size: 15px;
             font-weight: 700;
-            letter-spacing: 0.02em;
-            cursor: pointer;
+            letter-spacing: 0.04em;
+            cursor: none;
             position: relative;
             overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            animation: fadeInUp 0.6s 0.65s both;
-            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.25);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 30px rgba(0, 240, 255, 0.2), 0 0 60px rgba(0, 240, 255, 0.05);
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
 
         .btn-generate::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+            background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 50%);
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.4s ease;
         }
-
         .btn-generate:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(0, 212, 255, 0.4);
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 8px 40px rgba(0, 240, 255, 0.35), 0 0 80px rgba(0, 240, 255, 0.1);
         }
-
-        .btn-generate:hover::before {
-            opacity: 1;
-        }
-
+        .btn-generate:hover::before { opacity: 1; }
         .btn-generate:active {
-            transform: translateY(0) scale(0.98);
+            transform: translateY(-1px) scale(0.99);
         }
-
         .btn-generate:disabled {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: not-allowed;
             transform: none;
+            animation: none;
         }
 
         .btn-text {
@@ -334,63 +540,54 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
         }
-
         .btn-icon {
-            width: 18px;
-            height: 18px;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 20px;
+            height: 20px;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
         .btn-generate:hover .btn-icon {
-            transform: rotate(180deg);
+            transform: rotate(360deg);
         }
 
-        /* Loading spinner */
+        /* Loading */
         .spinner {
-            width: 18px;
-            height: 18px;
-            border: 2.5px solid rgba(0,0,0,0.2);
+            width: 20px;
+            height: 20px;
+            border: 2.5px solid rgba(0,0,0,0.15);
             border-top-color: #000;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: spin 0.7s linear infinite;
             display: none;
         }
-
         .btn-generate.loading .btn-text span,
-        .btn-generate.loading .btn-icon {
-            display: none;
-        }
+        .btn-generate.loading .btn-icon { display: none; }
+        .btn-generate.loading .spinner { display: block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .btn-generate.loading .spinner {
-            display: block;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Result area */
+        /* ===== RESULT ===== */
         .result-container {
-            margin-top: 28px;
-            animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            margin-top: 32px;
+            position: relative;
+            z-index: 2;
             display: none;
         }
+        .result-container.show { display: block; animation: resultIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-        .result-container.show {
-            display: block;
+        @keyframes resultIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .result-box {
-            background: rgba(0, 255, 157, 0.05);
-            border: 1px solid rgba(0, 255, 157, 0.15);
-            border-radius: 16px;
-            padding: 24px;
+            background: linear-gradient(135deg, rgba(0, 255, 157, 0.04), rgba(0, 240, 255, 0.02));
+            border: 1px solid rgba(0, 255, 157, 0.12);
+            border-radius: 20px;
+            padding: 28px;
             position: relative;
             overflow: hidden;
         }
-
         .result-box::before {
             content: '';
             position: absolute;
@@ -398,239 +595,282 @@
             left: 0;
             right: 0;
             height: 2px;
-            background: linear-gradient(90deg, transparent, var(--success), transparent);
-            opacity: 0.6;
+            background: linear-gradient(90deg, transparent, var(--success), var(--primary), transparent);
+            opacity: 0.7;
+            animation: scanLine 3s ease-in-out infinite;
+        }
+        @keyframes scanLine {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
         }
 
         .result-label {
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.12em;
             color: var(--success);
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
-
-        .result-label svg {
-            width: 16px;
-            height: 16px;
-        }
+        .result-label svg { width: 18px; height: 18px; }
 
         .key-display {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.35);
             border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 12px;
-            padding: 16px;
+            border-radius: 14px;
+            padding: 18px;
             font-family: 'JetBrains Mono', monospace;
             font-size: 13px;
             font-weight: 500;
             color: var(--text);
             word-break: break-all;
-            line-height: 1.6;
+            line-height: 1.7;
             position: relative;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            cursor: none;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
         .key-display:hover {
-            border-color: rgba(0, 212, 255, 0.2);
-            background: rgba(0, 0, 0, 0.4);
+            border-color: rgba(0, 240, 255, 0.2);
+            background: rgba(0, 0, 0, 0.45);
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.05);
         }
-
         .key-display .copy-hint {
             position: absolute;
-            top: 8px;
-            right: 8px;
-            padding: 4px 10px;
-            background: rgba(255,255,255,0.08);
-            border-radius: 6px;
-            font-size: 10px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
+            top: 10px;
+            right: 10px;
+            padding: 5px 12px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            font-size: 9px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
             color: var(--text-dim);
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: all 0.3s ease;
         }
-
-        .key-display:hover .copy-hint {
-            opacity: 1;
-        }
-
+        .key-display:hover .copy-hint { opacity: 1; }
         .key-display.copied {
             border-color: var(--success);
-            background: rgba(0, 255, 157, 0.08);
+            background: rgba(0, 255, 157, 0.06);
         }
 
         .expires-info {
-            margin-top: 16px;
+            margin-top: 18px;
             display: flex;
             align-items: center;
             gap: 10px;
             font-size: 13px;
             color: var(--text-dim);
         }
+        .expires-info svg { width: 14px; height: 14px; }
+        .expires-info strong { color: var(--text); font-weight: 600; }
 
-        .expires-info svg {
-            width: 14px;
-            height: 14px;
-            color: var(--text-dim);
-        }
-
-        .expires-info strong {
-            color: var(--text);
-            font-weight: 600;
-        }
-
-        /* Error state */
+        /* Error */
         .error-box {
-            background: rgba(255, 71, 87, 0.05);
-            border: 1px solid rgba(255, 71, 87, 0.15);
-            border-radius: 16px;
-            padding: 20px 24px;
+            background: linear-gradient(135deg, rgba(255, 56, 96, 0.04), rgba(255, 56, 96, 0.02));
+            border: 1px solid rgba(255, 56, 96, 0.15);
+            border-radius: 20px;
+            padding: 22px 26px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             color: var(--error);
             font-size: 14px;
             font-weight: 500;
         }
+        .error-box svg { width: 22px; height: 22px; flex-shrink: 0; }
 
-        .error-box svg {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
+        /* ===== FOOTER ===== */
+        .footer {
+            margin-top: 32px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            animation: fadeSlideUp 0.8s 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
-
-        /* Toast notification */
-        .toast {
-            position: fixed;
-            bottom: 32px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: rgba(15, 15, 25, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 255, 157, 0.2);
-            border-radius: 12px;
-            padding: 14px 24px;
+        .footer-line {
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            gap: 12px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.12);
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .footer-line::before,
+        .footer-line::after {
+            content: '';
+            width: 40px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1));
+        }
+        .footer-line::after {
+            background: linear-gradient(90deg, rgba(255,255,255,0.1), transparent);
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120px);
+            background: rgba(12, 12, 22, 0.95);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(0, 255, 157, 0.2);
+            border-radius: 14px;
+            padding: 16px 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             font-size: 14px;
             font-weight: 600;
             color: var(--success);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(0, 255, 157, 0.1);
             z-index: 1000;
             opacity: 0;
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
             pointer-events: none;
         }
-
         .toast.show {
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
+        .toast svg { width: 20px; height: 20px; }
 
-        .toast svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        /* Decorative grid */
-        .grid-bg {
+        /* ===== PARTICLE BURST (success) ===== */
+        .burst-particle {
             position: fixed;
-            inset: 0;
-            z-index: 1;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
             pointer-events: none;
-            background-image: 
-                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
-            background-size: 60px 60px;
-            mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
-            -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+            z-index: 100;
         }
 
-        /* Footer */
-        .footer {
-            margin-top: 28px;
-            text-align: center;
-            font-size: 12px;
-            color: rgba(255,255,255,0.15);
-            font-weight: 500;
-            letter-spacing: 0.05em;
-            animation: fadeInUp 0.6s 0.75s both;
-        }
-
-        /* Responsive */
-        @media (max-width: 520px) {
-            .card {
-                padding: 36px 24px;
-                border-radius: 20px;
-            }
-            h1 {
-                font-size: 26px;
-            }
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 560px) {
+            .card { padding: 40px 24px; border-radius: 22px; }
+            h1 { font-size: 28px; }
+            .logo-icon { width: 48px; height: 48px; }
+            .cursor, .cursor-trail { display: none; }
+            body { cursor: auto; }
+            select, .btn-generate { cursor: pointer; }
+            .key-display { cursor: pointer; }
         }
     </style>
 <base target="_blank">
 </head>
 <body>
 
-    <canvas id="bg-canvas"></canvas>
-    <div class="grid-bg"></div>
-
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
-
-    <div class="card">
-        <div class="header">
-            <div class="badge">
-                <span class="badge-dot"></span>
-                Secure Key System
-            </div>
-            <h1>VENOM KEY<br>GENERATOR</h1>
-            <p class="subtitle">Generate time-limited access keys instantly</p>
-        </div>
-
-        <div class="form-group">
-            <label class="label">Select Duration</label>
-            <div class="select-wrapper">
-                <select id="duration">
-                    <option value="1h">1 Hour</option>
-                    <option value="5h">5 Hours</option>
-                    <option value="1d">1 Day</option>
-                    <option value="3d">3 Days</option>
-                    <option value="7d">7 Days</option>
-                    <option value="15d">15 Days</option>
-                    <option value="30d">30 Days</option>
-                    <option value="60d">60 Days</option>
-                </select>
-            </div>
-        </div>
-
-        <button class="btn-generate" onclick="generateKey()" id="generateBtn">
-            <div class="btn-text">
-                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="23 4 23 10 17 10"></polyline>
-                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                </svg>
-                <span>Generate Key</span>
-            </div>
-            <div class="spinner"></div>
-        </button>
-
-        <div class="result-container" id="resultContainer">
-            <div id="resultContent"></div>
-        </div>
-
-        <div class="footer">VENOM SYSTEMS v2.0</div>
+    <!-- PRELOADER -->
+    <div class="preloader" id="preloader">
+        <div class="preloader-logo">VENOM <span>SYSTEMS</span></div>
+        <div class="preloader-bar"></div>
+        <div class="preloader-percent" id="preloaderPercent">0%</div>
     </div>
 
+    <!-- CUSTOM CURSOR -->
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-trail" id="cursorTrail"></div>
+
+    <!-- 3D BACKGROUND -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- NOISE & VIGNETTE -->
+    <div class="noise"></div>
+    <div class="vignette"></div>
+
+    <!-- FLOATING SHAPES -->
+    <div class="geo-shape geo-ring"></div>
+    <div class="geo-shape geo-ring-2"></div>
+    <div class="geo-shape geo-diamond"></div>
+
+    <!-- MAIN -->
+    <div class="main-wrap">
+        <div class="card-3d" id="card3d">
+            <div class="card">
+                <div class="card-light" id="cardLight"></div>
+
+                <div class="header">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 56 56" fill="none">
+                            <circle cx="28" cy="28" r="27" stroke="url(#logoGrad)" stroke-width="1.5"/>
+                            <path d="M28 12L36 28L28 36L20 28L28 12Z" fill="url(#logoGrad)" opacity="0.2"/>
+                            <path d="M28 12L36 28L28 36L20 28L28 12Z" stroke="url(#logoGrad)" stroke-width="1.5" stroke-linejoin="round"/>
+                            <circle cx="28" cy="28" r="4" fill="url(#logoGrad)"/>
+                            <defs>
+                                <linearGradient id="logoGrad" x1="12" y1="12" x2="44" y2="44">
+                                    <stop stop-color="#00f0ff"/>
+                                    <stop offset="1" stop-color="#ffd700"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <div class="badge">
+                        <span class="badge-dot"></span>
+                        Secure Key Infrastructure
+                    </div>
+                    <h1>
+                        <span class="line1">VENOM KEY</span>
+                        <span class="line2">GENERATOR</span>
+                    </h1>
+                    <p class="subtitle">Generate cryptographically secure, time-bound access keys</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="form-group">
+                    <label class="label">
+                        <span class="label-num">01</span>
+                        Select Access Duration
+                    </label>
+                    <div class="select-wrapper">
+                        <select id="duration">
+                            <option value="1h">1 Hour</option>
+                            <option value="5h">5 Hours</option>
+                            <option value="1d">1 Day</option>
+                            <option value="3d">3 Days</option>
+                            <option value="7d">7 Days</option>
+                            <option value="15d">15 Days</option>
+                            <option value="30d">30 Days</option>
+                            <option value="60d">60 Days</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="btn-wrap">
+                    <button class="btn-generate" onclick="generateKey()" id="generateBtn">
+                        <div class="btn-text">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                            </svg>
+                            <span>Generate Access Key</span>
+                        </div>
+                        <div class="spinner"></div>
+                    </button>
+                </div>
+
+                <div class="result-container" id="resultContainer">
+                    <div id="resultContent"></div>
+                </div>
+
+                <div class="footer">
+                    <div class="footer-line">VENOM SYSTEMS v2.0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
     <div class="toast" id="toast">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12"></polyline>
@@ -639,11 +879,55 @@
     </div>
 
     <script>
-        // Particle system
+        // ===== PRELOADER =====
+        const preloader = document.getElementById('preloader');
+        const preloaderPercent = document.getElementById('preloaderPercent');
+        let loadProgress = 0;
+        const loadInterval = setInterval(() => {
+            loadProgress += Math.random() * 15 + 5;
+            if (loadProgress >= 100) {
+                loadProgress = 100;
+                clearInterval(loadInterval);
+                setTimeout(() => {
+                    preloader.classList.add('done');
+                }, 400);
+            }
+            preloaderPercent.textContent = Math.floor(loadProgress) + '%';
+        }, 120);
+
+        // ===== CUSTOM CURSOR =====
+        const cursor = document.getElementById('cursor');
+        const cursorTrail = document.getElementById('cursorTrail');
+        let mouseX = 0, mouseY = 0;
+        let trailX = 0, trailY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursor.style.left = mouseX + 'px';
+            cursor.style.top = mouseY + 'px';
+        });
+
+        function animateCursor() {
+            trailX += (mouseX - trailX) * 0.15;
+            trailY += (mouseY - trailY) * 0.15;
+            cursorTrail.style.left = trailX + 'px';
+            cursorTrail.style.top = trailY + 'px';
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        document.querySelectorAll('button, select, .key-display').forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+        });
+
+        // ===== 3D PARTICLE SPHERE BACKGROUND =====
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
-        let mouseX = 0, mouseY = 0;
+        let rotX = 0, rotY = 0;
+        let targetRotX = 0, targetRotY = 0;
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -652,71 +936,151 @@
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
-        class Particle {
-            constructor() {
-                this.reset();
-            }
-            reset() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 2 + 0.5;
-                this.speedX = (Math.random() - 0.5) * 0.3;
-                this.speedY = (Math.random() - 0.5) * 0.3;
-                this.opacity = Math.random() * 0.5 + 0.1;
-            }
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
-                    this.reset();
-                }
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(0, 212, 255, ${this.opacity})`;
-                ctx.fill();
-            }
+        // Create sphere particles
+        const PARTICLE_COUNT = 350;
+        const SPHERE_RADIUS = Math.min(window.innerWidth, window.innerHeight) * 0.35;
+
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            const r = SPHERE_RADIUS * (0.3 + Math.random() * 0.7);
+            particles.push({
+                x: r * Math.sin(phi) * Math.cos(theta),
+                y: r * Math.sin(phi) * Math.sin(theta),
+                z: r * Math.cos(phi),
+                baseX: r * Math.sin(phi) * Math.cos(theta),
+                baseY: r * Math.sin(phi) * Math.sin(theta),
+                baseZ: r * Math.cos(phi),
+                size: Math.random() * 1.5 + 0.5,
+                opacity: Math.random() * 0.6 + 0.2,
+                speed: Math.random() * 0.002 + 0.001
+            });
         }
 
-        for (let i = 0; i < 80; i++) {
-            particles.push(new Particle());
+        function project3D(x, y, z) {
+            const fov = 800;
+            const scale = fov / (fov + z);
+            return {
+                x: x * scale + canvas.width / 2,
+                y: y * scale + canvas.height / 2,
+                scale: scale,
+                z: z
+            };
         }
 
-        function drawConnections() {
-            for (let i = 0; i < particles.length; i++) {
-                for (let j = i + 1; j < particles.length; j++) {
-                    const dx = particles[i].x - particles[j].x;
-                    const dy = particles[i].y - particles[j].y;
+        function rotate3D(x, y, z, rx, ry) {
+            // Rotate around Y
+            let x1 = x * Math.cos(ry) - z * Math.sin(ry);
+            let z1 = x * Math.sin(ry) + z * Math.cos(ry);
+            // Rotate around X
+            let y2 = y * Math.cos(rx) - z1 * Math.sin(rx);
+            let z2 = y * Math.sin(rx) + z1 * Math.cos(rx);
+            return { x: x1, y: y2, z: z2 };
+        }
+
+        let time = 0;
+
+        function animateBG() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            time += 0.003;
+
+            // Smooth rotation
+            rotX += (targetRotX - rotX) * 0.05;
+            rotY += (targetRotY - rotY) * 0.05;
+
+            // Auto rotation
+            rotY += 0.002;
+
+            const projected = [];
+
+            particles.forEach((p, i) => {
+                // Orbital motion
+                const orbitSpeed = p.speed * 50;
+                const angle = time * orbitSpeed + i;
+                const orbitRadius = 20;
+                const ox = p.baseX + Math.cos(angle) * orbitRadius;
+                const oy = p.baseY + Math.sin(angle * 0.7) * orbitRadius;
+                const oz = p.baseZ + Math.sin(angle * 0.5) * orbitRadius;
+
+                const rotated = rotate3D(ox, oy, oz, rotX, rotY);
+                const proj = project3D(rotated.x, rotated.y, rotated.z);
+                proj.opacity = p.opacity * (0.5 + 0.5 * ((rotated.z + SPHERE_RADIUS) / (2 * SPHERE_RADIUS)));
+                proj.size = p.size * proj.scale;
+                projected.push({ ...proj, original: p });
+            });
+
+            // Sort by depth
+            projected.sort((a, b) => b.z - a.z);
+
+            // Draw connections
+            for (let i = 0; i < projected.length; i++) {
+                for (let j = i + 1; j < Math.min(i + 8, projected.length); j++) {
+                    const dx = projected[i].x - projected[j].x;
+                    const dy = projected[i].y - projected[j].y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < 150) {
+                    if (dist < 120) {
+                        const alpha = 0.04 * (1 - dist / 120) * projected[i].opacity;
                         ctx.beginPath();
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.strokeStyle = `rgba(0, 212, 255, ${0.08 * (1 - dist / 150)})`;
+                        ctx.moveTo(projected[i].x, projected[i].y);
+                        ctx.lineTo(projected[j].x, projected[j].y);
+                        ctx.strokeStyle = `rgba(0, 240, 255, ${alpha})`;
                         ctx.lineWidth = 0.5;
                         ctx.stroke();
                     }
                 }
             }
-        }
 
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => { p.update(); p.draw(); });
-            drawConnections();
-            requestAnimationFrame(animate);
-        }
-        animate();
+            // Draw particles
+            projected.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0, 240, 255, ${p.opacity})`;
+                ctx.fill();
 
-        // Mouse parallax
+                // Glow for front particles
+                if (p.z > 0) {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(0, 240, 255, ${p.opacity * 0.1})`;
+                    ctx.fill();
+                }
+            });
+
+            requestAnimationFrame(animateBG);
+        }
+        animateBG();
+
+        // Mouse influence on sphere
         document.addEventListener('mousemove', (e) => {
-            mouseX = (e.clientX / window.innerWidth - 0.5) * 20;
-            mouseY = (e.clientY / window.innerHeight - 0.5) * 20;
-            document.querySelector('.card').style.transform = `translate(${mouseX * 0.3}px, ${mouseY * 0.3}px)`;
+            targetRotY = (e.clientX / window.innerWidth - 0.5) * 1.5;
+            targetRotX = (e.clientY / window.innerHeight - 0.5) * 1;
         });
 
-        // Generate key
+        // ===== 3D CARD TILT =====
+        const card3d = document.getElementById('card3d');
+        const cardLight = document.getElementById('cardLight');
+
+        document.addEventListener('mousemove', (e) => {
+            const rect = card3d.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const rotateY = ((e.clientX - centerX) / rect.width) * 12;
+            const rotateX = ((centerY - e.clientY) / rect.height) * 12;
+
+            card3d.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+
+            // Move light reflection
+            const lightX = ((e.clientX - rect.left) / rect.width) * 100;
+            const lightY = ((e.clientY - rect.top) / rect.height) * 100;
+            cardLight.style.left = (lightX - 50) + '%';
+            cardLight.style.top = (lightY - 50) + '%';
+        });
+
+        document.addEventListener('mouseleave', () => {
+            card3d.style.transform = 'rotateX(0) rotateY(0)';
+        });
+
+        // ===== GENERATE KEY =====
         async function generateKey() {
             const btn = document.getElementById('generateBtn');
             const resultContainer = document.getElementById('resultContainer');
@@ -744,7 +1108,7 @@
                                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                                     <polyline points="22 4 12 14.01 9 11.01"></polyline>
                                 </svg>
-                                Generated Successfully
+                                Key Generated Successfully
                             </div>
                             <div class="key-display" onclick="copyKey(this)" data-key="${data.key}">
                                 ${data.key}
@@ -755,10 +1119,12 @@
                                     <circle cx="12" cy="12" r="10"></circle>
                                     <polyline points="12 6 12 12 16 14"></polyline>
                                 </svg>
-                                <span>Expires: <strong>${data.expires}</strong></span>
+                                <span>Valid until <strong>${data.expires}</strong></span>
                             </div>
                         </div>
                     `;
+                    // Burst effect
+                    createBurst();
                 } else {
                     resultContent.innerHTML = `
                         <div class="error-box">
@@ -779,7 +1145,7 @@
                             <line x1="12" y1="8" x2="12" y2="12"></line>
                             <line x1="12" y1="16" x2="12.01" y2="16"></line>
                         </svg>
-                        Connection failed. Please try again.
+                        Connection failed. Please verify your network and try again.
                     </div>
                 `;
             }
@@ -789,7 +1155,7 @@
             resultContainer.classList.add('show');
         }
 
-        // Copy to clipboard
+        // ===== COPY KEY =====
         function copyKey(el) {
             const key = el.getAttribute('data-key');
             navigator.clipboard.writeText(key).then(() => {
@@ -803,8 +1169,39 @@
                     toast.classList.remove('show');
                     el.classList.remove('copied');
                     el.querySelector('.copy-hint').textContent = 'Click to copy';
-                }, 2000);
+                }, 2200);
             });
+        }
+
+        // ===== BURST PARTICLES =====
+        function createBurst() {
+            const colors = ['#00f0ff', '#00ff9d', '#ffd700', '#fff'];
+            const rect = document.querySelector('.result-box').getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            for (let i = 0; i < 30; i++) {
+                const p = document.createElement('div');
+                p.className = 'burst-particle';
+                p.style.left = centerX + 'px';
+                p.style.top = centerY + 'px';
+                p.style.background = colors[Math.floor(Math.random() * colors.length)];
+                p.style.boxShadow = `0 0 6px ${p.style.background}`;
+                document.body.appendChild(p);
+
+                const angle = (Math.PI * 2 * i) / 30 + Math.random() * 0.5;
+                const velocity = 80 + Math.random() * 120;
+                const vx = Math.cos(angle) * velocity;
+                const vy = Math.sin(angle) * velocity;
+
+                p.animate([
+                    { transform: 'translate(0,0) scale(1)', opacity: 1 },
+                    { transform: `translate(${vx}px, ${vy}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 800 + Math.random() * 400,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                }).onfinish = () => p.remove();
+            }
         }
     </script>
 </body>
