@@ -16,7 +16,7 @@ body{
 .topbar{
     padding:20px;
     background:#151515;
-    font-size:22px;
+    font-size:24px;
     font-weight:bold;
 }
 
@@ -44,7 +44,7 @@ body{
 }
 
 .card span{
-    font-size:32px;
+    font-size:34px;
     font-weight:bold;
 }
 
@@ -144,7 +144,6 @@ button{
                     <th>STATUS</th>
                     <th>DEVICES</th>
                     <th>EXPIRY</th>
-                    <th>ACTIONS</th>
 
                 </tr>
 
@@ -162,6 +161,10 @@ button{
 
 <script>
 
+// ----------------------------------
+// ADMIN CHECK
+// ----------------------------------
+
 if(
     localStorage.getItem(
         "venom_admin"
@@ -171,58 +174,105 @@ if(
         "/admin.html";
 }
 
-// DEMO DATA
+// ----------------------------------
+// LOAD STATS
+// ----------------------------------
 
-document.getElementById(
-    "totalKeys"
-).innerText = "25";
+async function loadStats(){
 
-document.getElementById(
-    "activeKeys"
-).innerText = "20";
+    const res =
+        await fetch(
+            '/api/dashboard-stats'
+        );
 
-document.getElementById(
-    "expiredKeys"
-).innerText = "3";
+    const data =
+        await res.json();
 
-document.getElementById(
-    "totalUsers"
-).innerText = "40";
+    document.getElementById(
+        'totalKeys'
+    ).innerText =
+        data.total_keys || 0;
 
-// DEMO TABLE
+    document.getElementById(
+        'activeKeys'
+    ).innerText =
+        data.active_keys || 0;
 
-document.getElementById(
-    "keyTable"
-).innerHTML += `
+    document.getElementById(
+        'expiredKeys'
+    ).innerText =
+        data.expired_keys || 0;
 
-<tr>
+    document.getElementById(
+        'totalUsers'
+    ).innerText =
+        data.total_users || 0;
+}
 
-<td>VENOM-TEST-001</td>
+// ----------------------------------
+// LOAD KEYS
+// ----------------------------------
 
-<td>ACTIVE</td>
+async function loadKeys(){
 
-<td>1 / 2</td>
+    const res =
+        await fetch(
+            '/api/get-keys'
+        );
 
-<td>30 DAYS</td>
+    const data =
+        await res.json();
 
-<td>
+    const table =
+        document.getElementById(
+            'keyTable'
+        );
 
-<button class="disable">
-DISABLE
-</button>
+    table.innerHTML = '';
 
-<button class="reset">
-RESET
-</button>
+    data.keys.forEach(key => {
 
-<button class="delete">
-DELETE
-</button>
+        const devicesUsed =
+            key.hwids
+            ? key.hwids.length
+            : 0;
 
-</td>
+        table.innerHTML += `
 
-</tr>
-`;
+        <tr>
+
+            <td>
+                ${key.license_key}
+            </td>
+
+            <td>
+                ${key.status}
+            </td>
+
+            <td>
+                ${devicesUsed}
+                /
+                ${key.max_devices}
+            </td>
+
+            <td>
+                ${new Date(
+                    key.expires_at
+                ).toLocaleString()}
+            </td>
+
+        </tr>
+        `;
+    });
+}
+
+// ----------------------------------
+// INIT
+// ----------------------------------
+
+loadStats();
+
+loadKeys();
 
 </script>
 
