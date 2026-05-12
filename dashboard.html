@@ -3,7 +3,6 @@
 <head>
 
 <meta charset="UTF-8">
-
 <title>VENOM DASHBOARD</title>
 
 <style>
@@ -20,9 +19,9 @@ body{
     font-family:Arial;
 }
 
-/* -------------------------------- */
+/* ------------------------------- */
 /* TOPBAR */
-/* -------------------------------- */
+/* ------------------------------- */
 
 .topbar{
 
@@ -94,17 +93,18 @@ body{
     background:red;
 }
 
-/* -------------------------------- */
+/* ------------------------------- */
 /* CONTAINER */
-/* -------------------------------- */
+/* ------------------------------- */
 
 .container{
+
     padding:25px;
 }
 
-/* -------------------------------- */
+/* ------------------------------- */
 /* STATS */
-/* -------------------------------- */
+/* ------------------------------- */
 
 .stats{
 
@@ -145,9 +145,9 @@ body{
     font-weight:bold;
 }
 
-/* -------------------------------- */
+/* ------------------------------- */
 /* TABLE */
-/* -------------------------------- */
+/* ------------------------------- */
 
 .table-box{
 
@@ -177,7 +177,7 @@ table{
 
     border-collapse:collapse;
 
-    min-width:900px;
+    min-width:950px;
 }
 
 th{
@@ -207,9 +207,9 @@ tr:hover{
     background:#181818;
 }
 
-/* -------------------------------- */
+/* ------------------------------- */
 /* STATUS */
-/* -------------------------------- */
+/* ------------------------------- */
 
 .active{
 
@@ -232,9 +232,9 @@ tr:hover{
     font-weight:bold;
 }
 
-/* -------------------------------- */
-/* ACTION BUTTONS */
-/* -------------------------------- */
+/* ------------------------------- */
+/* BUTTONS */
+/* ------------------------------- */
 
 .action-btn{
 
@@ -265,20 +265,23 @@ tr:hover{
 }
 
 .disable-btn{
+
     background:orange;
 }
 
 .delete-btn{
+
     background:red;
 }
 
 .reset-btn{
+
     background:#0099ff;
 }
 
-/* -------------------------------- */
+/* ------------------------------- */
 /* MOBILE */
-/* -------------------------------- */
+/* ------------------------------- */
 
 @media(max-width:900px){
 
@@ -306,9 +309,9 @@ tr:hover{
 
 <body>
 
-<!-- -------------------------------- -->
+<!-- ------------------------------- -->
 <!-- TOPBAR -->
-<!-- -------------------------------- -->
+<!-- ------------------------------- -->
 
 <div class="topbar">
 
@@ -337,9 +340,9 @@ tr:hover{
 
 </div>
 
-<!-- -------------------------------- -->
+<!-- ------------------------------- -->
 <!-- CONTAINER -->
-<!-- -------------------------------- -->
+<!-- ------------------------------- -->
 
 <div class="container">
 
@@ -429,9 +432,9 @@ tr:hover{
 
 <script>
 
-// ----------------------------------
+// -------------------------------
 // ADMIN CHECK
-// ----------------------------------
+// -------------------------------
 
 if(
     localStorage.getItem(
@@ -443,9 +446,9 @@ if(
         "/admin.html";
 }
 
-// ----------------------------------
+// -------------------------------
 // LOGOUT
-// ----------------------------------
+// -------------------------------
 
 function logout(){
 
@@ -457,9 +460,71 @@ function logout(){
         "/admin.html";
 }
 
-// ----------------------------------
+// -------------------------------
+// RESET DEVICES
+// -------------------------------
+
+async function resetDevices(key){
+
+    const confirmReset =
+        confirm(
+            'Reset Devices?'
+        );
+
+    if(!confirmReset)
+        return;
+
+    try{
+
+        const res =
+            await fetch(
+                '/api/reset-devices',
+                {
+                    method:'POST',
+
+                    headers:{
+                        'Content-Type':
+                        'application/json'
+                    },
+
+                    body:JSON.stringify({
+                        key
+                    })
+                }
+            );
+
+        const data =
+            await res.json();
+
+        if(data.success){
+
+            alert(
+                'Devices Reset Successfully'
+            );
+
+            loadKeys();
+
+        }else{
+
+            alert(
+                data.message ||
+                'Reset Failed'
+            );
+        }
+
+    }catch(e){
+
+        console.log(e);
+
+        alert(
+            'Server Error'
+        );
+    }
+}
+
+// -------------------------------
 // DELETE KEY
-// ----------------------------------
+// -------------------------------
 
 async function deleteKey(key){
 
@@ -521,9 +586,9 @@ async function deleteKey(key){
     }
 }
 
-// ----------------------------------
+// -------------------------------
 // TOGGLE KEY
-// ----------------------------------
+// -------------------------------
 
 async function toggleKey(key){
 
@@ -555,9 +620,9 @@ async function toggleKey(key){
                 'Key Status Updated'
             );
 
-            loadKeys();
-
             loadStats();
+
+            loadKeys();
 
         }else{
 
@@ -577,9 +642,9 @@ async function toggleKey(key){
     }
 }
 
-// ----------------------------------
+// -------------------------------
 // LOAD STATS
-// ----------------------------------
+// -------------------------------
 
 async function loadStats(){
 
@@ -619,9 +684,9 @@ async function loadStats(){
     }
 }
 
-// ----------------------------------
+// -------------------------------
 // LOAD KEYS
-// ----------------------------------
+// -------------------------------
 
 async function loadKeys(){
 
@@ -644,11 +709,7 @@ async function loadKeys(){
 
         data.keys.forEach(key => {
 
-            let devicesUsed = 0;
-
             let hwids = [];
-
-            // PARSE HWIDS
 
             if(typeof key.hwids === 'string'){
 
@@ -674,7 +735,7 @@ async function loadKeys(){
                     key.hwids;
             }
 
-            devicesUsed =
+            let devicesUsed =
                 hwids.length;
 
             // STATUS
@@ -754,6 +815,16 @@ async function loadKeys(){
                     </button>
 
                     <button
+                    class="action-btn reset-btn"
+                    onclick="
+                    resetDevices(
+                    '${key.license_key}'
+                    )
+                    ">
+                        Reset
+                    </button>
+
+                    <button
                     class="action-btn delete-btn"
                     onclick="
                     deleteKey(
@@ -775,9 +846,9 @@ async function loadKeys(){
     }
 }
 
-// ----------------------------------
+// -------------------------------
 // AUTO REFRESH
-// ----------------------------------
+// -------------------------------
 
 setInterval(() => {
 
@@ -787,9 +858,9 @@ setInterval(() => {
 
 }, 10000);
 
-// ----------------------------------
+// -------------------------------
 // INIT
-// ----------------------------------
+// -------------------------------
 
 loadStats();
 
