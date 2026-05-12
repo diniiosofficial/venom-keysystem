@@ -24,14 +24,18 @@ module.exports = async (req, res) => {
     let body = req.body || {};
 
     // JSON STRING SUPPORT
+
     if (typeof body === 'string') {
 
       try {
+
         body = JSON.parse(body);
+
       } catch {}
     }
 
     // RAW FORM SUPPORT
+
     if (
       req.method === 'POST' &&
       (
@@ -86,10 +90,7 @@ module.exports = async (req, res) => {
     .trim();
 
     console.log("KEY:", key);
-    console.log("KEY LENGTH:", key.length);
-
     console.log("HWID:", hwid);
-    console.log("HWID LENGTH:", hwid.length);
 
     // ---------------------------------
     // VALIDATION
@@ -97,10 +98,10 @@ module.exports = async (req, res) => {
 
     if (!key || !hwid) {
 
-      console.log("INVALID REQUEST");
-
       return res.json({
+
         status: false,
+
         reason: 'Invalid Request'
       });
     }
@@ -109,24 +110,26 @@ module.exports = async (req, res) => {
     // DATABASE CHECK
     // ---------------------------------
 
-    const result = await pool.query(
-      'SELECT * FROM keys WHERE TRIM(license_key)=$1 LIMIT 1',
-      [key]
-    );
+    const result =
+      await pool.query(
 
-    console.log("DB RESULT:", result.rows);
+        'SELECT * FROM keys WHERE TRIM(license_key)=$1 LIMIT 1',
+
+        [key]
+      );
 
     if (result.rows.length <= 0) {
 
-      console.log("INVALID KEY");
-
       return res.json({
+
         status: false,
+
         reason: 'Invalid Key'
       });
     }
 
-    const row = result.rows[0];
+    const row =
+      result.rows[0];
 
     // ---------------------------------
     // STATUS CHECK
@@ -137,10 +140,10 @@ module.exports = async (req, res) => {
       row.status.toLowerCase() !== 'active'
     ) {
 
-      console.log("KEY DISABLED");
-
       return res.json({
+
         status: false,
+
         reason: 'Key Disabled'
       });
     }
@@ -149,51 +152,121 @@ module.exports = async (req, res) => {
     // EXPIRY CHECK
     // ---------------------------------
 
-    const expire = new Date(row.expires_at).getTime();
+    const expire =
+      new Date(
+        row.expires_at
+      ).getTime();
 
-    console.log("EXPIRE:", expire);
-    console.log("NOW:", Date.now());
-
-    if (Date.now() > expire) {
-
-      console.log("KEY EXPIRED");
+    if (
+      Date.now() > expire
+    ) {
 
       return res.json({
+
         status: false,
+
         reason: 'Key Expired'
       });
     }
 
     // ---------------------------------
-    // HWID CHECK
+    // MULTI DEVICE SYSTEM
     // ---------------------------------
 
-    const savedHwid = (row.hwid || '')
-      .toString()
-      .trim();
+    let hwids =
+      row.hwids || [];
 
-    if (!savedHwid) {
+    // STRING -> JSON
 
-      await pool.query(
-        'UPDATE keys SET hwid=$1 WHERE license_key=$2',
-        [hwid, key]
+    if (
+      typeof hwids === 'string'
+    ) {
+
+      try {
+
+        hwids =
+          JSON.parse(hwids);
+
+      } catch {
+
+        hwids = [];
+      }
+    }
+
+    // SAFETY
+
+    if (
+      !Array.isArray(hwids)
+    ) {
+
+      hwids = [];
+    }
+
+    const maxDevices =
+      parseInt(
+        row.max_devices || 1
       );
 
-      console.log("HWID LOCKED");
+    console.log(
+      "MAX DEVICES:",
+      maxDevices
+    );
+
+    console.log(
+      "CURRENT DEVICES:",
+      hwids.length
+    );
+
+    // ---------------------------------
+    // DEVICE EXISTS
+    // ---------------------------------
+
+    if (
+      hwids.includes(hwid)
+    ) {
+
+      console.log(
+        "KNOWN DEVICE"
+      );
 
     } else {
 
-      console.log("SAVED HWID:", savedHwid);
+      // ---------------------------------
+      // DEVICE LIMIT
+      // ---------------------------------
 
-      if (savedHwid !== hwid) {
-
-        console.log("HWID MISMATCH");
+      if (
+        hwids.length >= maxDevices
+      ) {
 
         return res.json({
+
           status: false,
-          reason: 'HWID Mismatch'
+
+          reason:
+            'Device Limit Reached'
         });
       }
+
+      // ---------------------------------
+      // ADD DEVICE
+      // ---------------------------------
+
+      hwids.push(hwid);
+
+      await pool.query(
+
+        'UPDATE keys SET hwids=$1 WHERE license_key=$2',
+
+        [
+          JSON.stringify(hwids),
+          key
+        ]
+      );
+
+      console.log(
+        "NEW DEVICE ADDED"
+      );
     }
 
     // ---------------------------------
@@ -208,27 +281,37 @@ module.exports = async (req, res) => {
     try {
 
       await pool.query(
+
         'INSERT INTO users (license_key, hwid, ip_address) VALUES ($1, $2, $3)',
-        [key, hwid, ip]
+
+        [
+          key,
+          hwid,
+          ip
+        ]
       );
 
-      console.log("USER SAVED");
+      console.log(
+        "USER SAVED"
+      );
 
     } catch (e) {
 
-      console.log("USER SAVE ERROR:", e.message);
+      console.log(
+        "USER SAVE ERROR:",
+        e.message
+      );
     }
 
     // ---------------------------------
-    // TOKEN GENERATION
+    // TOKEN
     // ---------------------------------
 
-    const token = crypto
+    const token =
+      crypto
       .createHash('md5')
       .update(key + hwid)
       .digest('hex');
-
-    console.log("LOGIN SUCCESS");
 
     // ---------------------------------
     // FORMAT EXP DATE
@@ -238,38 +321,76 @@ module.exports = async (req, res) => {
 
     try {
 
-      expString = new Date(row.expires_at)
-        .toLocaleString('en-IN', {
-          timeZone: 'Asia/Kolkata'
-        });
+      expString =
+        new Date(row.expires_at)
+        .toLocaleString(
+          'en-IN',
+          {
+            timeZone:
+              'Asia/Kolkata'
+          }
+        );
 
     } catch {
 
-      expString = String(row.expires_at);
+      expString =
+        String(
+          row.expires_at
+        );
     }
+
+    console.log(
+      "LOGIN SUCCESS"
+    );
 
     // ---------------------------------
     // SUCCESS RESPONSE
     // ---------------------------------
 
     return res.json({
+
       status: true,
+
       data: {
+
         token,
-        rng: Math.floor(Date.now() / 1000),
-        EXP: expString,
-        expiry: expString,
-        key: key
+
+        rng:
+          Math.floor(
+            Date.now() / 1000
+          ),
+
+        EXP:
+          expString,
+
+        expiry:
+          expString,
+
+        key:
+          key,
+
+        devices_used:
+          hwids.length,
+
+        max_devices:
+          maxDevices
       }
     });
 
   } catch (e) {
 
-    console.log("SERVER ERROR:", e);
+    console.log(
+      "SERVER ERROR:",
+      e
+    );
 
     return res.json({
+
       status: false,
-      reason: e.message || 'Unknown Error'
+
+      reason:
+        e.message ||
+        'Unknown Error'
     });
   }
 };
