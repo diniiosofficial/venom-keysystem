@@ -1,121 +1,1067 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>VENOM ADMIN LOGIN</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VENOM ADMIN — Secure Access</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Cinzel:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #020204;
+            --surface: rgba(12, 12, 22, 0.55);
+            --primary: #00f5d4;
+            --primary-glow: rgba(0, 245, 212, 0.3);
+            --gold: #ffd700;
+            --gold-dim: rgba(255, 215, 0, 0.12);
+            --text: #f0f0f5;
+            --text-dim: #5a5a6e;
+            --error: #ff2d55;
+            --error-glow: rgba(255, 45, 85, 0.2);
+            --success: #00ff9d;
+            --border: rgba(255, 255, 255, 0.04);
+            --border-hover: rgba(255, 255, 255, 0.1);
+        }
 
-  <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
 
-    body{
-      background:#0d0d0d;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      font-family:Arial;
-    }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Space Grotesk', sans-serif;
+            min-height: 100vh;
+            overflow: hidden;
+            cursor: none;
+        }
 
-    .box{
-      width:320px;
-      background:#151515;
-      padding:30px;
-      border-radius:12px;
-    }
+        /* ===== PRELOADER ===== */
+        .preloader {
+            position: fixed; inset: 0; z-index: 100000;
+            background: var(--bg);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 1.2s;
+        }
+        .preloader.done { opacity: 0; visibility: hidden; pointer-events: none; }
+        .preloader-ring {
+            width: 70px; height: 70px;
+            border: 1px solid rgba(0, 245, 212, 0.12);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: preSpin 1s linear infinite;
+            position: relative;
+        }
+        .preloader-ring::after {
+            content: ''; position: absolute; inset: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.08);
+            border-bottom-color: var(--gold);
+            border-radius: 50%;
+            animation: preSpin 1.3s linear infinite reverse;
+        }
+        @keyframes preSpin { to { transform: rotate(360deg); } }
+        .preloader-brand {
+            margin-top: 28px;
+            font-family: 'Cinzel', serif;
+            font-size: 10px;
+            letter-spacing: 0.5em;
+            text-transform: uppercase;
+            color: var(--text-dim);
+        }
+        .preloader-brand span { color: var(--primary); }
+        .preloader-track {
+            margin-top: 16px;
+            width: 140px; height: 1px;
+            background: rgba(255,255,255,0.04);
+            position: relative;
+            overflow: hidden;
+        }
+        .preloader-fill {
+            position: absolute; left: 0; top: 0;
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--gold));
+            transition: width 0.3s ease;
+        }
 
-    h1{
-      color:white;
-      text-align:center;
-      margin-bottom:25px;
-    }
+        /* ===== CURSOR ===== */
+        .cursor {
+            position: fixed; width: 6px; height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+            pointer-events: none; z-index: 99999;
+            mix-blend-mode: difference;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease, width 0.35s ease, height 0.35s ease;
+            box-shadow: 0 0 12px var(--primary), 0 0 24px var(--primary-glow);
+        }
+        .cursor.hover {
+            width: 44px; height: 44px;
+            background: transparent;
+            border: 1.5px solid var(--primary);
+            mix-blend-mode: normal;
+            box-shadow: 0 0 24px var(--primary-glow), inset 0 0 24px var(--primary-glow);
+        }
+        .cursor-trail {
+            position: fixed; width: 36px; height: 36px;
+            border: 1px solid rgba(0, 245, 212, 0.1);
+            border-radius: 50%;
+            pointer-events: none; z-index: 99998;
+            transform: translate(-50%, -50%);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .cursor-trail-2 {
+            position: fixed; width: 64px; height: 64px;
+            border: 1px solid rgba(255, 215, 0, 0.05);
+            border-radius: 50%;
+            pointer-events: none; z-index: 99997;
+            transform: translate(-50%, -50%);
+            transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-    input{
-      width:100%;
-      height:45px;
-      margin-bottom:15px;
-      border:none;
-      outline:none;
-      padding-left:15px;
-      border-radius:8px;
-      background:#222;
-      color:white;
-    }
+        /* ===== BACKGROUND ===== */
+        #bg-canvas {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0; pointer-events: none;
+        }
+        .noise {
+            position: fixed; inset: 0; z-index: 1;
+            pointer-events: none; opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='5' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-repeat: repeat; background-size: 512px 512px;
+        }
+        .vignette {
+            position: fixed; inset: 0; z-index: 2;
+            pointer-events: none;
+            background: radial-gradient(ellipse at 50% 50%, transparent 0%, transparent 35%, rgba(0,0,0,0.65) 100%);
+        }
+        .scanlines {
+            position: fixed; inset: 0; z-index: 3;
+            pointer-events: none; opacity: 0.012;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.3) 2px, rgba(0,0,0,0.3) 4px);
+        }
 
-    button{
-      width:100%;
-      height:45px;
-      border:none;
-      border-radius:8px;
-      background:#0099ff;
-      color:white;
-      font-size:16px;
-      cursor:pointer;
-    }
+        /* ===== FLOATING RINGS ===== */
+        .geo {
+            position: fixed; pointer-events: none; z-index: 1;
+            border-radius: 50%; border: 1px solid;
+            opacity: 0.05;
+        }
+        .geo-1 { width: 450px; height: 450px; border-color: var(--primary); top: -8%; right: -6%; animation: geo1 28s ease-in-out infinite; }
+        .geo-2 { width: 320px; height: 320px; border-color: var(--gold); bottom: -8%; left: -4%; animation: geo2 22s ease-in-out infinite; }
+        .geo-3 { width: 180px; height: 180px; border-color: var(--primary); top: 55%; right: 10%; animation: geo3 18s ease-in-out infinite; }
+        @keyframes geo1 { 0%,100% { transform: translate(0,0) rotate(0deg); } 33% { transform: translate(-35px,25px) rotate(120deg); } 66% { transform: translate(15px,-35px) rotate(240deg); } }
+        @keyframes geo2 { 0%,100% { transform: translate(0,0) rotate(0deg); } 50% { transform: translate(40px,-25px) rotate(180deg); } }
+        @keyframes geo3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-25px,15px) scale(1.1); } }
 
-    p{
-      color:red;
-      text-align:center;
-    }
+        /* ===== MAIN ===== */
+        .main-wrap {
+            position: relative; z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            perspective: 1500px;
+        }
 
-  </style>
+        /* ===== 3D CARD ===== */
+        .card-3d {
+            width: 420px; max-width: 95vw;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.15s ease-out;
+        }
+
+        .card {
+            background: linear-gradient(165deg, rgba(14,14,26,0.65) 0%, rgba(8,8,18,0.55) 100%);
+            backdrop-filter: blur(60px);
+            -webkit-backdrop-filter: blur(60px);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 52px 44px;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.01),
+                0 25px 80px rgba(0,0,0,0.6),
+                0 0 100px rgba(0, 245, 212, 0.025);
+            animation: cardReveal 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both,
+                       cardBreathe 7s ease-in-out infinite 2.5s;
+        }
+
+        @keyframes cardReveal {
+            from { opacity: 0; transform: translateY(70px) rotateX(18deg) scale(0.92); }
+            to { opacity: 1; transform: translateY(0) rotateX(0) scale(1); }
+        }
+        @keyframes cardBreathe {
+            0%, 100% { box-shadow: 0 25px 80px rgba(0,0,0,0.6), 0 0 100px rgba(0, 245, 212, 0.025); }
+            50% { box-shadow: 0 25px 80px rgba(0,0,0,0.6), 0 0 140px rgba(0, 245, 212, 0.05); }
+        }
+
+        .card::before {
+            content: '';
+            position: absolute; inset: 0;
+            border-radius: 30px;
+            padding: 1.5px;
+            background: conic-gradient(
+                from 0deg at 50% 50%,
+                rgba(0, 245, 212, 0.35) 0deg,
+                rgba(255, 215, 0, 0.15) 72deg,
+                rgba(255,255,255,0) 144deg,
+                rgba(255,255,255,0) 216deg,
+                rgba(0, 245, 212, 0.15) 288deg,
+                rgba(0, 245, 212, 0.35) 360deg
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            animation: borderSpin 14s linear infinite;
+        }
+        @keyframes borderSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 245, 212, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            transition: background 0.3s ease;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative; z-index: 2;
+        }
+
+        .logo-wrap {
+            position: relative;
+            width: 64px; height: 64px;
+            margin: 0 auto 24px;
+            animation: fadeUp 1s 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .logo-wrap::before {
+            content: ''; position: absolute; inset: -6px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 245, 212, 0.08);
+            animation: logoPulse 3s ease-in-out infinite;
+        }
+        .logo-wrap::after {
+            content: ''; position: absolute; inset: -14px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 215, 0, 0.04);
+            animation: logoPulse 3s ease-in-out infinite 0.6s;
+        }
+        @keyframes logoPulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.06); opacity: 0.4; } }
+        .logo-wrap svg {
+            width: 100%; height: 100%;
+            filter: drop-shadow(0 0 20px rgba(0, 245, 212, 0.35));
+        }
+
+        .badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 7px 16px;
+            background: linear-gradient(135deg, rgba(0, 245, 212, 0.05), rgba(255, 215, 0, 0.02));
+            border: 1px solid rgba(0, 245, 212, 0.08);
+            border-radius: 100px;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 24px;
+            animation: fadeUp 1s 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+            position: relative; overflow: hidden;
+        }
+        .badge::after {
+            content: '';
+            position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+            animation: badgeShine 5s ease-in-out infinite;
+        }
+        @keyframes badgeShine { 0%,100% { left: -100%; } 50% { left: 100%; } }
+        .badge-dot {
+            width: 4px; height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary-glow);
+            animation: dotPulse 2.5s ease-in-out infinite;
+        }
+        @keyframes dotPulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.6); } }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            animation: fadeUp 1s 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        h1 .line1 {
+            display: block;
+            background: linear-gradient(135deg, #fff 0%, #a8a8b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        h1 .line2 {
+            display: block;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-top: 2px;
+        }
+
+        .subtitle {
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--text-dim);
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            animation: fadeUp 1s 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(35px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== DIVIDER ===== */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 245, 212, 0.12), rgba(255, 215, 0, 0.08), rgba(0, 245, 212, 0.12), transparent);
+            margin: 28px 0 32px;
+            position: relative;
+            animation: fadeUp 1s 1.05s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .divider::after {
+            content: '';
+            position: absolute; left: 50%; top: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px; height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 12px var(--primary), 0 0 24px var(--primary-glow);
+        }
+
+        /* ===== INPUTS ===== */
+        .input-group {
+            margin-bottom: 20px;
+            position: relative; z-index: 2;
+            animation: fadeUp 1s 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .input-group:nth-child(2) { animation-delay: 1.15s; }
+
+        .input-label {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            padding-left: 4px;
+            transition: color 0.3s ease;
+        }
+        .input-label svg {
+            width: 13px; height: 13px;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        .input-group:focus-within .input-label { color: var(--primary); }
+        .input-group:focus-within .input-label svg { opacity: 1; }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        input {
+            width: 100%;
+            padding: 18px 18px 18px 48px;
+            background: linear-gradient(165deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            color: var(--text);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: none;
+            outline: none;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        input::placeholder {
+            color: var(--text-dim);
+            font-weight: 400;
+            opacity: 0.6;
+        }
+        input:hover {
+            background: linear-gradient(165deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+            border-color: rgba(255,255,255,0.08);
+            transform: translateY(-1px);
+        }
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 245, 212, 0.08), 0 0 35px rgba(0, 245, 212, 0.05);
+            transform: translateY(-2px);
+            background: linear-gradient(165deg, rgba(0, 245, 212, 0.03), rgba(255,255,255,0.01));
+        }
+        input.error {
+            border-color: var(--error);
+            box-shadow: 0 0 0 3px var(--error-glow), 0 0 25px rgba(255, 45, 85, 0.08);
+            animation: shake 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 18px; top: 50%;
+            transform: translateY(-50%);
+            width: 18px; height: 18px;
+            color: var(--text-dim);
+            transition: all 0.4s ease;
+            pointer-events: none;
+        }
+        .input-group:focus-within .input-icon {
+            color: var(--primary);
+            filter: drop-shadow(0 0 6px var(--primary-glow));
+        }
+
+        .input-glow {
+            position: absolute; inset: -1px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--gold));
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.4s ease;
+            filter: blur(12px);
+        }
+        .input-group:focus-within .input-glow { opacity: 0.15; }
+
+        /* ===== BUTTON ===== */
+        .btn-wrap {
+            position: relative; z-index: 2;
+            animation: fadeUp 1s 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .btn-login {
+            width: 100%;
+            padding: 20px 28px;
+            background: linear-gradient(135deg, var(--primary) 0%, #00c8b8 40%, var(--gold) 100%);
+            background-size: 200% 200%;
+            animation: gradientShift 5s ease infinite;
+            border: none;
+            border-radius: 16px;
+            color: #000;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            cursor: none;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 35px rgba(0, 245, 212, 0.2), 0 0 70px rgba(0, 245, 212, 0.06);
+        }
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .btn-login::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .btn-login::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+        .btn-login:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 45px rgba(0, 245, 212, 0.35), 0 0 90px rgba(0, 245, 212, 0.1);
+        }
+        .btn-login:hover::before, .btn-login:hover::after { opacity: 1; }
+        .btn-login:active { transform: translateY(-1px) scale(0.99); }
+        .btn-login:disabled {
+            opacity: 0.4; cursor: not-allowed;
+            transform: none; animation: none;
+        }
+        .btn-text {
+            position: relative; z-index: 2;
+            display: flex; align-items: center;
+            justify-content: center; gap: 10px;
+        }
+        .btn-icon {
+            width: 18px; height: 18px;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-login:hover .btn-icon { transform: translateX(3px); }
+
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2.5px solid rgba(0,0,0,0.15);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+        .btn-login.loading .btn-text span,
+        .btn-login.loading .btn-icon { display: none; }
+        .btn-login.loading .spinner { display: block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== ERROR MESSAGE ===== */
+        .msg-wrap {
+            margin-top: 20px;
+            min-height: 24px;
+            position: relative; z-index: 2;
+            animation: fadeUp 1s 1.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .msg-error {
+            display: flex; align-items: center;
+            justify-content: center; gap: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--error);
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .msg-error.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .msg-error svg {
+            width: 16px; height: 16px;
+            flex-shrink: 0;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            margin-top: 32px;
+            text-align: center;
+            position: relative; z-index: 2;
+            animation: fadeUp 1s 1.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        .footer-line {
+            display: flex; align-items: center;
+            justify-content: center; gap: 12px;
+            font-family: 'Cinzel', serif;
+            font-size: 9px;
+            color: rgba(255,255,255,0.08);
+            font-weight: 500;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+        .footer-line::before, .footer-line::after {
+            content: '';
+            width: 40px; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06));
+        }
+        .footer-line::after {
+            background: linear-gradient(90deg, rgba(255,255,255,0.06), transparent);
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 44px; left: 50%;
+            transform: translateX(-50%) translateY(140px);
+            background: rgba(10, 10, 20, 0.95);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(0, 255, 157, 0.15);
+            border-radius: 14px;
+            padding: 16px 28px;
+            display: flex; align-items: center; gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--success);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(0, 255, 157, 0.06);
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast svg { width: 18px; height: 18px; }
+
+        /* ===== BURST ===== */
+        .burst-particle {
+            position: fixed;
+            width: 4px; height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            .card { padding: 40px 28px; border-radius: 24px; }
+            h1 { font-size: 24px; }
+            .logo-wrap { width: 56px; height: 56px; }
+            .cursor, .cursor-trail, .cursor-trail-2 { display: none; }
+            body { cursor: auto; }
+            input, .btn-login { cursor: pointer; }
+        }
+    </style>
+<base target="_blank">
 </head>
-
 <body>
 
-<div class="box">
+    <!-- PRELOADER -->
+    <div class="preloader" id="preloader">
+        <div class="preloader-ring"></div>
+        <div class="preloader-brand">VENOM <span>SYSTEMS</span></div>
+        <div class="preloader-track">
+            <div class="preloader-fill" id="preloaderFill"></div>
+        </div>
+    </div>
 
-  <h1>VENOM ADMIN</h1>
+    <!-- CURSOR -->
+    <div class="cursor" id="cursor"></div>
+    <div class="cursor-trail" id="cursorTrail"></div>
+    <div class="cursor-trail-2" id="cursorTrail2"></div>
 
-  <input
-    type="text"
-    id="username"
-    placeholder="Username"
-  >
+    <!-- BACKGROUND -->
+    <canvas id="bg-canvas"></canvas>
+    <div class="noise"></div>
+    <div class="vignette"></div>
+    <div class="scanlines"></div>
 
-  <input
-    type="password"
-    id="password"
-    placeholder="Password"
-  >
+    <!-- FLOATING -->
+    <div class="geo geo-1"></div>
+    <div class="geo geo-2"></div>
+    <div class="geo geo-3"></div>
 
-  <button onclick="login()">
-    LOGIN
-  </button>
+    <!-- MAIN -->
+    <div class="main-wrap">
+        <div class="card-3d" id="card3d">
+            <div class="card" id="card">
+                <div class="header">
+                    <div class="logo-wrap">
+                        <svg viewBox="0 0 64 64" fill="none">
+                            <defs>
+                                <linearGradient id="lg" x1="10" y1="10" x2="54" y2="54">
+                                    <stop stop-color="#00f5d4"/>
+                                    <stop offset="1" stop-color="#ffd700"/>
+                                </linearGradient>
+                                <filter id="gl">
+                                    <feGaussianBlur stdDeviation="2.5" result="b"/>
+                                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                                </filter>
+                            </defs>
+                            <circle cx="32" cy="32" r="30" stroke="url(#lg)" stroke-width="1" opacity="0.35"/>
+                            <circle cx="32" cy="32" r="24" stroke="url(#lg)" stroke-width="0.5" opacity="0.15"/>
+                            <path d="M32 14L42 32L32 40L22 32L32 14Z" fill="url(#lg)" opacity="0.12" filter="url(#gl)"/>
+                            <path d="M32 14L42 32L32 40L22 32L32 14Z" stroke="url(#lg)" stroke-width="1.5" stroke-linejoin="round"/>
+                            <circle cx="32" cy="32" r="4.5" fill="url(#lg)" filter="url(#gl)"/>
+                            <circle cx="32" cy="18" r="1.2" fill="url(#lg)" opacity="0.5"/>
+                            <circle cx="42" cy="32" r="1.2" fill="url(#lg)" opacity="0.5"/>
+                            <circle cx="32" cy="46" r="1.2" fill="url(#lg)" opacity="0.5"/>
+                            <circle cx="22" cy="32" r="1.2" fill="url(#lg)" opacity="0.5"/>
+                        </svg>
+                    </div>
+                    <div class="badge">
+                        <span class="badge-dot"></span>
+                        Restricted Access
+                    </div>
+                    <h1>
+                        <span class="line1">VENOM</span>
+                        <span class="line2">ADMIN</span>
+                    </h1>
+                    <p class="subtitle">Authenticate to access the control panel</p>
+                </div>
 
-  <p id="msg"></p>
+                <div class="divider"></div>
 
-</div>
+                <div class="input-group">
+                    <label class="input-label">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        Username
+                    </label>
+                    <div class="input-wrap">
+                        <input type="text" id="username" placeholder="Enter username" autocomplete="off" spellcheck="false">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <div class="input-glow"></div>
+                    </div>
+                </div>
 
-<script>
+                <div class="input-group">
+                    <label class="input-label">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        Password
+                    </label>
+                    <div class="input-wrap">
+                        <input type="password" id="password" placeholder="Enter password">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <div class="input-glow"></div>
+                    </div>
+                </div>
 
-async function login(){
+                <div class="btn-wrap">
+                    <button class="btn-login" onclick="login()" id="loginBtn">
+                        <div class="btn-text">
+                            <span>Authenticate</span>
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </div>
+                        <div class="spinner"></div>
+                    </button>
+                </div>
 
-  const username =
-    document.getElementById("username").value;
+                <div class="msg-wrap">
+                    <div class="msg-error" id="msgError">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <span id="msgText">Invalid credentials</span>
+                    </div>
+                </div>
 
-  const password =
-    document.getElementById("password").value;
+                <div class="footer">
+                    <div class="footer-line">VENOM SYSTEMS v2.0</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  if(
-    username === "venomadmin" &&
-    password === "venom@2026"
-  ){
+    <!-- TOAST -->
+    <div class="toast" id="toast">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span>Authentication successful</span>
+    </div>
 
-    localStorage.setItem(
-      "venom_admin",
-      "true"
-    );
+    <script>
+        // ===== PRELOADER =====
+        const preloader = document.getElementById('preloader');
+        const preloaderFill = document.getElementById('preloaderFill');
+        let loadProg = 0;
+        const loadInt = setInterval(() => {
+            loadProg += Math.random() * 18 + 7;
+            if (loadProg >= 100) {
+                loadProg = 100;
+                clearInterval(loadInt);
+                setTimeout(() => { preloader.classList.add('done'); }, 700);
+            }
+            preloaderFill.style.width = Math.floor(loadProg) + '%';
+        }, 90);
 
-    window.location =
-      "/index.html";
+        // ===== CURSOR =====
+        const cursor = document.getElementById('cursor');
+        const trail = document.getElementById('cursorTrail');
+        const trail2 = document.getElementById('cursorTrail2');
+        let mx = 0, my = 0, tx = 0, ty = 0, tx2 = 0, ty2 = 0;
 
-  }else{
+        document.addEventListener('mousemove', (e) => {
+            mx = e.clientX; my = e.clientY;
+            cursor.style.left = mx + 'px';
+            cursor.style.top = my + 'px';
+        });
 
-    document.getElementById("msg")
-    .innerText =
-      "Invalid Login";
-  }
-}
+        function animCursor() {
+            tx += (mx - tx) * 0.1;
+            ty += (my - ty) * 0.1;
+            tx2 += (mx - tx2) * 0.05;
+            ty2 += (my - ty2) * 0.05;
+            trail.style.left = tx + 'px';
+            trail.style.top = ty + 'px';
+            trail2.style.left = tx2 + 'px';
+            trail2.style.top = ty2 + 'px';
+            requestAnimationFrame(animCursor);
+        }
+        animCursor();
 
-</script>
+        document.querySelectorAll('button, input').forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+        });
 
+        // ===== 3D FLOWING BACKGROUND =====
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let waves = [];
+        let rotX = 0, rotY = 0, tRotX = 0, tRotY = 0;
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // Sphere
+        const COUNT = 380;
+        const R = Math.min(canvas.width, canvas.height) * 0.36;
+        for (let i = 0; i < COUNT; i++) {
+            const th = Math.random() * Math.PI * 2;
+            const ph = Math.acos(2 * Math.random() - 1);
+            const r = R * (0.2 + Math.random() * 0.8);
+            particles.push({
+                bx: r * Math.sin(ph) * Math.cos(th),
+                by: r * Math.sin(ph) * Math.sin(th),
+                bz: r * Math.cos(ph),
+                s: Math.random() * 1.6 + 0.4,
+                op: Math.random() * 0.45 + 0.12,
+                sp: Math.random() * 0.003 + 0.001
+            });
+        }
+
+        // Waves
+        for (let i = 0; i < 7; i++) {
+            waves.push({
+                y: Math.random() * canvas.height,
+                speed: 0.25 + Math.random() * 0.4,
+                amp: 25 + Math.random() * 50,
+                freq: 0.002 + Math.random() * 0.003,
+                phase: Math.random() * Math.PI * 2,
+                opacity: 0.025 + Math.random() * 0.035
+            });
+        }
+
+        function proj(x, y, z) {
+            const f = 900;
+            const sc = f / (f + z);
+            return { x: x * sc + canvas.width / 2, y: y * sc + canvas.height / 2, sc, z };
+        }
+        function rot(x, y, z, rx, ry) {
+            let x1 = x * Math.cos(ry) - z * Math.sin(ry);
+            let z1 = x * Math.sin(ry) + z * Math.cos(ry);
+            let y2 = y * Math.cos(rx) - z1 * Math.sin(rx);
+            let z2 = y * Math.sin(rx) + z1 * Math.cos(rx);
+            return { x: x1, y: y2, z: z2 };
+        }
+
+        let t = 0;
+        function animBG() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            t += 0.003;
+
+            rotX += (tRotX - rotX) * 0.04;
+            rotY += (tRotY - rotY) * 0.04;
+            rotY += 0.0012;
+
+            // Waves
+            waves.forEach(w => {
+                ctx.beginPath();
+                for (let x = 0; x < canvas.width; x += 3) {
+                    const y = w.y + Math.sin(x * w.freq + t * 2 + w.phase) * w.amp;
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.strokeStyle = `rgba(0, 245, 212, ${w.opacity})`;
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+                w.y += Math.sin(t + w.phase) * 0.15;
+            });
+
+            // Sphere
+            const list = [];
+            particles.forEach((p, i) => {
+                const a = t * p.sp * 50 + i;
+                const ox = p.bx + Math.cos(a) * 16;
+                const oy = p.by + Math.sin(a * 0.7) * 16;
+                const oz = p.bz + Math.sin(a * 0.5) * 16;
+                const r = rot(ox, oy, oz, rotX, rotY);
+                const pr = proj(r.x, r.y, r.z);
+                pr.op = p.op * (0.35 + 0.65 * ((r.z + R) / (2 * R)));
+                pr.sz = p.s * pr.sc;
+                list.push(pr);
+            });
+
+            list.sort((a, b) => b.z - a.z);
+
+            for (let i = 0; i < list.length; i++) {
+                for (let j = i + 1; j < Math.min(i + 5, list.length); j++) {
+                    const dx = list[i].x - list[j].x;
+                    const dy = list[i].y - list[j].y;
+                    const d = Math.sqrt(dx * dx + dy * dy);
+                    if (d < 125) {
+                        const a = 0.03 * (1 - d / 125) * list[i].op;
+                        ctx.beginPath();
+                        ctx.moveTo(list[i].x, list[i].y);
+                        ctx.lineTo(list[j].x, list[j].y);
+                        ctx.strokeStyle = `rgba(0, 245, 212, ${a})`;
+                        ctx.lineWidth = 0.4;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            list.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.sz, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0, 245, 212, ${p.op})`;
+                ctx.fill();
+                if (p.z > 0) {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.sz * 3.5, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(0, 245, 212, ${p.op * 0.07})`;
+                    ctx.fill();
+                }
+            });
+
+            requestAnimationFrame(animBG);
+        }
+        animBG();
+
+        document.addEventListener('mousemove', (e) => {
+            tRotY = (e.clientX / window.innerWidth - 0.5) * 1.1;
+            tRotX = (e.clientY / window.innerHeight - 0.5) * 0.7;
+        });
+
+        // ===== 3D CARD TILT + LIGHT =====
+        const card3d = document.getElementById('card3d');
+        const card = document.getElementById('card');
+
+        document.addEventListener('mousemove', (e) => {
+            const rect = card3d.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const ry = ((e.clientX - cx) / rect.width) * 12;
+            const rx = ((cy - e.clientY) / rect.height) * 12;
+            card3d.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+
+            const lx = ((e.clientX - rect.left) / rect.width) * 100;
+            const ly = ((e.clientY - rect.top) / rect.height) * 100;
+            card.style.setProperty('--mouse-x', lx + '%');
+            card.style.setProperty('--mouse-y', ly + '%');
+        });
+
+        document.addEventListener('mouseleave', () => {
+            card3d.style.transform = 'rotateX(0) rotateY(0)';
+        });
+
+        // ===== LOGIN =====
+        async function login() {
+            const btn = document.getElementById('loginBtn');
+            const username = document.getElementById('username');
+            const password = document.getElementById('password');
+            const msgError = document.getElementById('msgError');
+            const msgText = document.getElementById('msgText');
+            const toast = document.getElementById('toast');
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+            msgError.classList.remove('show');
+            username.classList.remove('error');
+            password.classList.remove('error');
+
+            // Simulate network delay for premium feel
+            await new Promise(r => setTimeout(r, 800));
+
+            if (username.value === 'venomadmin' && password.value === 'venom@2026') {
+                localStorage.setItem('venom_admin', 'true');
+                toast.classList.add('show');
+                createBurst();
+                setTimeout(() => {
+                    window.location = '/index.html';
+                }, 1200);
+            } else {
+                msgText.textContent = 'Invalid credentials. Access denied.';
+                msgError.classList.add('show');
+                username.classList.add('error');
+                password.classList.add('error');
+                btn.classList.remove('loading');
+                btn.disabled = false;
+
+                // Shake the card
+                card3d.style.animation = 'none';
+                card3d.offsetHeight; // trigger reflow
+                card3d.style.animation = 'cardShake 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+                setTimeout(() => { card3d.style.animation = ''; }, 500);
+            }
+        }
+
+        // Enter key support
+        document.getElementById('password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') login();
+        });
+        document.getElementById('username').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('password').focus();
+        });
+
+        // ===== BURST =====
+        function createBurst() {
+            const colors = ['#00f5d4', '#00ff9d', '#ffd700', '#fff'];
+            const cx = window.innerWidth / 2;
+            const cy = window.innerHeight / 2;
+            for (let i = 0; i < 50; i++) {
+                const p = document.createElement('div');
+                p.className = 'burst-particle';
+                p.style.left = cx + 'px';
+                p.style.top = cy + 'px';
+                const c = colors[Math.floor(Math.random() * colors.length)];
+                p.style.background = c;
+                p.style.boxShadow = `0 0 8px ${c}, 0 0 16px ${c}`;
+                document.body.appendChild(p);
+                const ang = (Math.PI * 2 * i) / 50 + Math.random() * 0.5;
+                const vel = 100 + Math.random() * 160;
+                const vx = Math.cos(ang) * vel;
+                const vy = Math.sin(ang) * vel;
+                p.animate([
+                    { transform: 'translate(0,0) scale(1.5)', opacity: 1 },
+                    { transform: `translate(${vx}px, ${vy}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 1000 + Math.random() * 500,
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)'
+                }).onfinish = () => p.remove();
+            }
+        }
+
+        // Add card shake keyframes dynamically
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes cardShake {
+                0%, 100% { transform: rotateX(0) rotateY(0); }
+                20% { transform: rotateX(2deg) rotateY(-3deg); }
+                40% { transform: rotateX(-2deg) rotateY(3deg); }
+                60% { transform: rotateX(1deg) rotateY(-2deg); }
+                80% { transform: rotateX(-1deg) rotateY(2deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 </body>
 </html>
