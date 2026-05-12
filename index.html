@@ -1,110 +1,811 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VENOM KEY GENERATOR</title>
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #00d4ff;
+            --primary-dim: rgba(0, 212, 255, 0.1);
+            --primary-glow: rgba(0, 212, 255, 0.4);
+            --bg: #050508;
+            --surface: rgba(15, 15, 25, 0.6);
+            --surface-border: rgba(255, 255, 255, 0.06);
+            --text: #e8e8f0;
+            --text-dim: #8b8b9e;
+            --success: #00ff9d;
+            --error: #ff4757;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            background: #0f0f0f;
-            color: white;
-            font-family: Arial;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            overflow: hidden;
+            position: relative;
         }
 
-        .box {
-            width: 400px;
-            background: #1a1a1a;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-        }
-
-        select, button {
+        /* Animated background canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            padding: 14px;
-            margin-top: 15px;
-            border: none;
-            border-radius: 10px;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Ambient orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+            animation: orbFloat 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--primary);
+            top: -10%;
+            left: -10%;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: #7c3aed;
+            bottom: -10%;
+            right: -10%;
+            animation-delay: -7s;
+        }
+
+        .orb-3 {
+            width: 300px;
+            height: 300px;
+            background: #00ff9d;
+            top: 50%;
+            left: 50%;
+            animation-delay: -14s;
+        }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -30px) scale(1.1); }
+            50% { transform: translate(-30px, 50px) scale(0.9); }
+            75% { transform: translate(30px, 30px) scale(1.05); }
+        }
+
+        /* Main card */
+        .card {
+            position: relative;
+            z-index: 10;
+            width: 480px;
+            max-width: 92vw;
+            background: var(--surface);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--surface-border);
+            border-radius: 24px;
+            padding: 48px 40px;
+            box-shadow: 
+                0 0 0 1px rgba(255,255,255,0.02),
+                0 20px 60px rgba(0,0,0,0.5),
+                0 0 80px rgba(0, 212, 255, 0.05);
+            animation: cardEntry 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        @keyframes cardEntry {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Card shine effect */
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            padding: 1.5px;
+            background: linear-gradient(
+                135deg,
+                rgba(255,255,255,0.15) 0%,
+                rgba(255,255,255,0) 40%,
+                rgba(255,255,255,0) 60%,
+                rgba(255,255,255,0.08) 100%
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(0, 212, 255, 0.08);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 20px;
+            animation: fadeInUp 0.6s 0.2s both;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--primary);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            background: linear-gradient(135deg, #fff 0%, #a0a0b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: fadeInUp 0.6s 0.35s both;
+        }
+
+        .subtitle {
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--text-dim);
+            font-weight: 400;
+            animation: fadeInUp 0.6s 0.45s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Form elements */
+        .form-group {
+            margin-bottom: 20px;
+            animation: fadeInUp 0.6s 0.55s both;
+        }
+
+        .label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+            padding-left: 4px;
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: '';
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            border-right: 2px solid var(--text-dim);
+            border-bottom: 2px solid var(--text-dim);
+            transform: translateY(-70%) rotate(45deg);
+            pointer-events: none;
+            transition: all 0.3s ease;
         }
 
         select {
-            background: #2b2b2b;
-            color: white;
-        }
-
-        button {
-            background: #00a2ff;
-            color: white;
-            font-size: 16px;
+            width: 100%;
+            padding: 16px 44px 16px 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
             cursor: pointer;
+            appearance: none;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .result {
-            margin-top: 20px;
-            word-wrap: break-word;
+        select:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-dim), 0 0 20px rgba(0, 212, 255, 0.1);
+        }
+
+        select option {
+            background: #0f0f1a;
+            color: var(--text);
+            padding: 12px;
+        }
+
+        /* Generate button */
+        .btn-generate {
+            width: 100%;
+            padding: 18px 24px;
+            margin-top: 8px;
+            background: linear-gradient(135deg, var(--primary) 0%, #0099cc 100%);
+            border: none;
+            border-radius: 14px;
+            color: #000;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: fadeInUp 0.6s 0.65s both;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.25);
+        }
+
+        .btn-generate::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 212, 255, 0.4);
+        }
+
+        .btn-generate:hover::before {
+            opacity: 1;
+        }
+
+        .btn-generate:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-text {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            width: 18px;
+            height: 18px;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-generate:hover .btn-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2.5px solid rgba(0,0,0,0.2);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        .btn-generate.loading .btn-text span,
+        .btn-generate.loading .btn-icon {
+            display: none;
+        }
+
+        .btn-generate.loading .spinner {
+            display: block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Result area */
+        .result-container {
+            margin-top: 28px;
+            animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            display: none;
+        }
+
+        .result-container.show {
+            display: block;
+        }
+
+        .result-box {
+            background: rgba(0, 255, 157, 0.05);
+            border: 1px solid rgba(0, 255, 157, 0.15);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--success), transparent);
+            opacity: 0.6;
+        }
+
+        .result-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--success);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-label svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .key-display {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            word-break: break-all;
+            line-height: 1.6;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .key-display:hover {
+            border-color: rgba(0, 212, 255, 0.2);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .key-display .copy-hint {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 4px 10px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 6px;
+            font-size: 10px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .key-display:hover .copy-hint {
+            opacity: 1;
+        }
+
+        .key-display.copied {
+            border-color: var(--success);
+            background: rgba(0, 255, 157, 0.08);
+        }
+
+        .expires-info {
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .expires-info svg {
+            width: 14px;
+            height: 14px;
+            color: var(--text-dim);
+        }
+
+        .expires-info strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* Error state */
+        .error-box {
+            background: rgba(255, 71, 87, 0.05);
+            border: 1px solid rgba(255, 71, 87, 0.15);
+            border-radius: 16px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--error);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .error-box svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(15, 15, 25, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 157, 0.2);
+            border-radius: 12px;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--success);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Decorative grid */
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+            -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255,255,255,0.15);
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            animation: fadeInUp 0.6s 0.75s both;
+        }
+
+        /* Responsive */
+        @media (max-width: 520px) {
+            .card {
+                padding: 36px 24px;
+                border-radius: 20px;
+            }
+            h1 {
+                font-size: 26px;
+            }
         }
     </style>
+<base target="_blank">
 </head>
 <body>
 
-<div class="box">
+    <canvas id="bg-canvas"></canvas>
+    <div class="grid-bg"></div>
 
-    <h1>VENOM KEY GENERATOR</h1>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
 
-    <select id="duration">
-        <option value="1h">1 Hour</option>
-        <option value="5h">5 Hour</option>
-        <option value="1d">1 Day</option>
-        <option value="3d">3 Day</option>
-        <option value="7d">7 Day</option>
-        <option value="15d">15 Day</option>
-        <option value="30d">30 Day</option>
-        <option value="60d">60 Day</option>
-    </select>
+    <div class="card">
+        <div class="header">
+            <div class="badge">
+                <span class="badge-dot"></span>
+                Secure Key System
+            </div>
+            <h1>VENOM KEY<br>GENERATOR</h1>
+            <p class="subtitle">Generate time-limited access keys instantly</p>
+        </div>
 
-    <button onclick="generateKey()">
-        Generate Key
-    </button>
+        <div class="form-group">
+            <label class="label">Select Duration</label>
+            <div class="select-wrapper">
+                <select id="duration">
+                    <option value="1h">1 Hour</option>
+                    <option value="5h">5 Hours</option>
+                    <option value="1d">1 Day</option>
+                    <option value="3d">3 Days</option>
+                    <option value="7d">7 Days</option>
+                    <option value="15d">15 Days</option>
+                    <option value="30d">30 Days</option>
+                    <option value="60d">60 Days</option>
+                </select>
+            </div>
+        </div>
 
-    <div class="result" id="result"></div>
+        <button class="btn-generate" onclick="generateKey()" id="generateBtn">
+            <div class="btn-text">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+                <span>Generate Key</span>
+            </div>
+            <div class="spinner"></div>
+        </button>
 
-</div>
+        <div class="result-container" id="resultContainer">
+            <div id="resultContent"></div>
+        </div>
 
-<script>
+        <div class="footer">VENOM SYSTEMS v2.0</div>
+    </div>
 
-async function generateKey() {
+    <div class="toast" id="toast">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span>Key copied to clipboard</span>
+    </div>
 
-    const duration = document.getElementById('duration').value;
+    <script>
+        // Particle system
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let mouseX = 0, mouseY = 0;
 
-    const req = await fetch('/generate', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ duration })
-    });
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
 
-    const data = await req.json();
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.3;
+                this.speedY = (Math.random() - 0.5) * 0.3;
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                    this.reset();
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0, 212, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
 
-    if (data.success) {
+        for (let i = 0; i < 80; i++) {
+            particles.push(new Particle());
+        }
 
-        document.getElementById('result').innerHTML = `
-            <h3>Generated Successfully</h3>
-            <p><b>KEY:</b><br>${data.key}</p>
-            <p><b>EXPIRES:</b><br>${data.expires}</p>
-        `;
+        function drawConnections() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(0, 212, 255, ${0.08 * (1 - dist / 150)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
 
-    } else {
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            drawConnections();
+            requestAnimationFrame(animate);
+        }
+        animate();
 
-        document.getElementById('result').innerHTML = data.message;
-    }
-}
+        // Mouse parallax
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 20;
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 20;
+            document.querySelector('.card').style.transform = `translate(${mouseX * 0.3}px, ${mouseY * 0.3}px)`;
+        });
 
-</script>
+        // Generate key
+        async function generateKey() {
+            const btn = document.getElementById('generateBtn');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultContent = document.getElementById('resultContent');
+            const duration = document.getElementById('duration').value;
 
+            btn.classList.add('loading');
+            btn.disabled = true;
+            resultContainer.classList.remove('show');
+
+            try {
+                const req = await fetch('/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ duration })
+                });
+
+                const data = await req.json();
+
+                if (data.success) {
+                    resultContent.innerHTML = `
+                        <div class="result-box">
+                            <div class="result-label">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                                Generated Successfully
+                            </div>
+                            <div class="key-display" onclick="copyKey(this)" data-key="${data.key}">
+                                ${data.key}
+                                <span class="copy-hint">Click to copy</span>
+                            </div>
+                            <div class="expires-info">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                <span>Expires: <strong>${data.expires}</strong></span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultContent.innerHTML = `
+                        <div class="error-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            ${data.message}
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                resultContent.innerHTML = `
+                    <div class="error-box">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        Connection failed. Please try again.
+                    </div>
+                `;
+            }
+
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            resultContainer.classList.add('show');
+        }
+
+        // Copy to clipboard
+        function copyKey(el) {
+            const key = el.getAttribute('data-key');
+            navigator.clipboard.writeText(key).then(() => {
+                el.classList.add('copied');
+                el.querySelector('.copy-hint').textContent = 'Copied!';
+
+                const toast = document.getElementById('toast');
+                toast.classList.add('show');
+
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    el.classList.remove('copied');
+                    el.querySelector('.copy-hint').textContent = 'Click to copy';
+                }, 2000);
+            });
+        }
+    </script>
 </body>
 </html>
