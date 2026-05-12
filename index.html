@@ -828,36 +828,132 @@
                 <div class="divider"></div>
 
                 <div class="form-group">
-                    <label class="label">
-                        <span class="label-num">01</span>
-                        Select Access Duration
-                    </label>
-                    <div class="select-wrapper">
-                        <select id="duration">
-                            <option value="1h">1 Hour</option>
-                            <option value="5h">5 Hours</option>
-                            <option value="1d">1 Day</option>
-                            <option value="3d">3 Days</option>
-                            <option value="7d">7 Days</option>
-                            <option value="15d">15 Days</option>
-                            <option value="30d">30 Days</option>
-                            <option value="60d">60 Days</option>
-                        </select>
-                    </div>
-                </div>
+    <label class="label">
+        <span class="label-num">01</span>
+        Select Access Duration
+    </label>
 
-                <div class="btn-wrap">
-                    <button class="btn-generate" onclick="generateKey()" id="generateBtn">
-                        <div class="btn-text">
-                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="23 4 23 10 17 10"></polyline>
-                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-                            </svg>
-                            <span>Generate Access Key</span>
-                        </div>
-                        <div class="spinner"></div>
-                    </button>
-                </div>
+    <div class="select-wrapper">
+        <select id="duration">
+            <option value="1h">1 Hour</option>
+            <option value="5h">5 Hours</option>
+            <option value="1d">1 Day</option>
+            <option value="3d">3 Days</option>
+            <option value="7d">7 Days</option>
+            <option value="15d">15 Days</option>
+            <option value="30d">30 Days</option>
+            <option value="60d">60 Days</option>
+        </select>
+    </div>
+</div>
+
+<!-- CUSTOM KEY -->
+
+<div class="form-group">
+
+    <label class="label">
+        <span class="label-num">02</span>
+        Custom Key
+    </label>
+
+    <input
+        type="text"
+        id="customKey"
+        placeholder="VENOM-DINI-VIP"
+        style="
+            width:100%;
+            padding:18px 20px;
+            background:linear-gradient(
+                135deg,
+                rgba(255,255,255,0.03),
+                rgba(255,255,255,0.01)
+            );
+            border:1px solid rgba(255,255,255,0.05);
+            border-radius:16px;
+            color:white;
+            outline:none;
+            font-size:15px;
+            font-family:'Space Grotesk',sans-serif;
+        "
+    >
+
+</div>
+
+<!-- MAX DEVICES -->
+
+<div class="form-group">
+
+    <label class="label">
+        <span class="label-num">03</span>
+        Max Devices
+    </label>
+
+    <input
+        type="number"
+        id="maxDevices"
+        value="1"
+        min="1"
+        placeholder="1"
+        style="
+            width:100%;
+            padding:18px 20px;
+            background:linear-gradient(
+                135deg,
+                rgba(255,255,255,0.03),
+                rgba(255,255,255,0.01)
+            );
+            border:1px solid rgba(255,255,255,0.05);
+            border-radius:16px;
+            color:white;
+            outline:none;
+            font-size:15px;
+            font-family:'Space Grotesk',sans-serif;
+        "
+    >
+
+</div>
+
+<div class="btn-wrap">
+
+    <button
+        class="btn-generate"
+        onclick="generateKey()"
+        id="generateBtn"
+    >
+
+        <div class="btn-text">
+
+            <svg
+                class="btn-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+
+                <polyline
+                    points="23 4 23 10 17 10"
+                ></polyline>
+
+                <path
+                    d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"
+                ></path>
+
+            </svg>
+
+            <span>
+                Generate Access Key
+            </span>
+
+        </div>
+
+        <div class="spinner"></div>
+
+    </button>
+
+</div>
 
                 <div class="result-container" id="resultContainer">
                     <div id="resultContent"></div>
@@ -879,6 +975,15 @@
     </div>
 
     <script>
+        if (
+              localStorage.getItem(
+                "venom_admin"
+                  ) !== "true"
+            ) {
+
+              window.location =
+                "/admin.html";
+            }
         // ===== PRELOADER =====
         const preloader = document.getElementById('preloader');
         const preloaderPercent = document.getElementById('preloaderPercent');
@@ -1095,7 +1200,20 @@
                 const req = await fetch('/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ duration })
+                    body: JSON.stringify({
+
+                    duration,
+
+                    customKey:
+                    document.getElementById(
+                        "customKey"
+                    ).value,
+
+                    maxDevices:
+                    document.getElementById(
+                        "maxDevices"
+                    ).value
+                })
                 });
 
                 const data = await req.json();
