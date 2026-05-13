@@ -526,7 +526,7 @@
             VENOM DASHBOARD
         </div>
         <div class="top-buttons">
-            <button class="top-btn" onclick="window.location='/generatekey.html'">
+            <button class="top-btn" onclick="window.location='/generatekey'">
                 <span>Generate Key</span>
             </button>
             <button class="top-btn logout" onclick="logout()">
@@ -759,13 +759,13 @@
 
         // ===== ADMIN CHECK =====
         if (localStorage.getItem("venom_admin") !== "true") {
-            window.location = "/admin.html";
+            window.location = "/admin";
         }
 
         // ===== LOGOUT =====
         function logout() {
             localStorage.removeItem("venom_admin");
-            window.location = "/admin.html";
+            window.location = "/admin";
         }
 
         // ===== RESET DEVICES =====
