@@ -976,15 +976,30 @@
     </div>
 
     <script>
-        if (
-              localStorage.getItem(
-                "legacy_admin"
-                  ) !== "true"
-            ) {
+        const token =
+localStorage.getItem(
+    'legacy_token'
+);
 
-              window.location =
-                "/generatekey";
-            }
+const role =
+localStorage.getItem(
+    'legacy_role'
+);
+
+if(
+
+    !token ||
+
+    (
+        role !== 'owner'
+        &&
+        role !== 'admin'
+    )
+){
+
+    window.location =
+    '/login';
+}
         // ===== PRELOADER =====
         const preloader = document.getElementById('preloader');
         const preloaderPercent = document.getElementById('preloaderPercent');
