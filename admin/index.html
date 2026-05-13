@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VENOM ADMIN — Secure Access</title>
+    <title>LEGACY CORE ADMIN — Secure Access</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -706,7 +706,7 @@
 
     <!-- PRELOADER -->
     <div class="preloader" id="preloader">
-        <div class="preloader-logo">VENOM <span>SYSTEMS</span></div>
+        <div class="preloader-logo">LEGACY CORE <span>SYSTEMS</span></div>
         <div class="preloader-bar"></div>
         <div class="preloader-percent" id="preloaderPercent">0%</div>
     </div>
@@ -752,7 +752,7 @@
                         Restricted Access
                     </div>
                     <h1>
-                        <span class="line1">VENOM</span>
+                        <span class="line1">LEGACY CORE</span>
                         <span class="line2">ADMIN</span>
                     </h1>
                     <p class="subtitle">Authenticate to access the control panel</p>
@@ -821,7 +821,7 @@
                 </div>
 
                 <div class="footer">
-                    <div class="footer-line">VENOM SYSTEMS v2.0</div>
+                    <div class="footer-line">LEGACY CORE SYSTEMS v2.0</div>
                 </div>
             </div>
         </div>
@@ -1038,8 +1038,8 @@
 
             await new Promise(r => setTimeout(r, 800));
 
-            if (username.value === 'venomadmin' && password.value === 'venom@2026') {
-                localStorage.setItem('venom_admin', 'true');
+            if (username.value === 'LegacyDevX' && password.value === 'DineshK2003') {
+                localStorage.setItem('legacy_admin', 'true');
                 toast.classList.add('show');
                 createBurst();
                 setTimeout(() => {
