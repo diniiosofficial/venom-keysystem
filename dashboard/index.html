@@ -757,16 +757,48 @@
             setTimeout(() => { toast.classList.remove('show'); }, 3000);
         }
 
-        // ===== ADMIN CHECK =====
-        if (localStorage.getItem("legacy_admin") !== "true") {
-            window.location = "/admin";
-        }
+        // ===== AUTH CHECK =====
 
-        // ===== LOGOUT =====
-        function logout() {
-            localStorage.removeItem("legacy_admin");
-            window.location = "/admin";
-        }
+const token =
+localStorage.getItem(
+    'legacy_token'
+);
+
+const role =
+localStorage.getItem(
+    'legacy_role'
+);
+
+if(
+
+    !token ||
+
+    (
+        role !== 'owner'
+        &&
+        role !== 'admin'
+    )
+){
+
+    window.location =
+    '/admin';
+}
+
+// ===== LOGOUT =====
+
+function logout(){
+
+    localStorage.removeItem(
+        'legacy_token'
+    );
+
+    localStorage.removeItem(
+        'legacy_role'
+    );
+
+    window.location =
+    '/admin';
+}
 
         // ===== RESET DEVICES =====
         async function resetDevices(key) {
