@@ -20,7 +20,7 @@ function randomKey(length = 16) {
     );
   }
 
-  return 'VENOM-' + result;
+  return 'LEGACY-' + result;
 }
 
 module.exports = async (req, res) => {
