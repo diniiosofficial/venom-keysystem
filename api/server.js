@@ -6,7 +6,7 @@ module.exports = async (req, res) => {
   try {
 
     // ---------------------------------
-    // VENOM LANDING PAGE
+    // LEGACY CORE LANDING PAGE
     // ---------------------------------
 
     if (req.method === 'GET') {
@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VENOM API</title>
+    <title>LEGACY CORE API</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -495,7 +495,7 @@ module.exports = async (req, res) => {
 
     <!-- PRELOADER -->
     <div class="preloader" id="preloader">
-        <div class="preloader-logo">VENOM <span>API</span></div>
+        <div class="preloader-logo">LEGACY CORE <span>API</span></div>
         <div class="preloader-bar"></div>
         <div class="preloader-percent" id="preloaderPercent">0%</div>
     </div>
@@ -540,7 +540,7 @@ module.exports = async (req, res) => {
                         Server Online
                     </div>
                     <h1>
-                        <span class="line1">VENOM</span>
+                        <span class="line1">LEGACY CORE</span>
                         <span class="line2">API</span>
                     </h1>
                     <p class="subtitle">Secure Authentication Server & Real-Time License Management System</p>
@@ -602,7 +602,7 @@ module.exports = async (req, res) => {
                 </div>
 
                 <div class="footer">
-                    <div class="footer-line">VENOM SECURITY v2.0</div>
+                    <div class="footer-line">LEGACY CORE SECURITY v2.0</div>
                     <div class="credit">Developed By <a href="https://t.me/LegacyDevX" target="_blank">@LegacyDevX</a></div>
                 </div>
             </div>
