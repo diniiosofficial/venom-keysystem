@@ -529,6 +529,21 @@
             <button class="top-btn" onclick="window.location='/generatekey'">
                 <span>Generate Key</span>
             </button>
+            <button
+class="top-btn"
+onclick="createAdmin()">
+
+    <span>Create Admin</span>
+
+</button>
+
+<button
+class="top-btn"
+onclick="createReseller()">
+
+    <span>Create Reseller</span>
+
+</button>
             <button class="top-btn logout" onclick="logout()">
                 <span>Logout</span>
             </button>
@@ -940,6 +955,163 @@ function logout(){
             }
         }
 
+        // ===== CREATE ADMIN =====
+
+async function createAdmin(){
+
+    const username =
+    prompt(
+        'Admin Username'
+    );
+
+    if(!username)
+        return;
+
+    const password =
+    prompt(
+        'Admin Password'
+    );
+
+    if(!password)
+        return;
+
+    try{
+
+        const res =
+        await fetch(
+
+            '/api/create-admin',
+
+            {
+                method:'POST',
+
+                headers:{
+                    'Content-Type':
+                    'application/json'
+                },
+
+                body:JSON.stringify({
+
+                    username,
+                    password
+                })
+            }
+        );
+
+        const data =
+        await res.json();
+
+        if(data.success){
+
+            showToast(
+                'Admin Created Successfully'
+            );
+
+        } else {
+
+            showToast(
+                data.message ||
+                'Failed',
+                true
+            );
+        }
+
+    }catch(e){
+
+        console.log(e);
+
+        showToast(
+            'Server Error',
+            true
+        );
+    }
+}
+
+// ===== CREATE RESELLER =====
+
+async function createReseller(){
+
+    const username =
+    prompt(
+        'Reseller Username'
+    );
+
+    if(!username)
+        return;
+
+    const password =
+    prompt(
+        'Reseller Password'
+    );
+
+    if(!password)
+        return;
+
+    const referral =
+    prompt(
+        'Referral Code'
+    );
+
+    try{
+
+        const res =
+        await fetch(
+
+            '/api/create-reseller',
+
+            {
+                method:'POST',
+
+                headers:{
+                    'Content-Type':
+                    'application/json'
+                },
+
+                body:JSON.stringify({
+
+                    username,
+
+                    password,
+
+                    referral_code:
+                    referral,
+
+                    referred_by:
+                    'LegacyDevX'
+                })
+            }
+        );
+
+        const data =
+        await res.json();
+
+        if(data.success){
+
+            showToast(
+                'Reseller Created Successfully'
+            );
+
+        } else {
+
+            showToast(
+                data.message ||
+                'Failed',
+                true
+            );
+        }
+
+    }catch(e){
+
+        console.log(e);
+
+        showToast(
+            'Server Error',
+            true
+        );
+    }
+}
+
+        
         // ===== AUTO REFRESH =====
         setInterval(() => {
             loadStats();
