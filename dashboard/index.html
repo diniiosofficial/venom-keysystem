@@ -909,7 +909,7 @@ function logout(){
                 data.keys.forEach(key => {
                     let hwids = [];
                     if (typeof key.hwids === 'string') {
-                        try { hwids = JSON.parse(key.hwids); } catch { hwids = []; }
+                        try { hwids = JSON.parse(key.hwids); } catch (e) { hwids = []; }
                     } else if (Array.isArray(key.hwids)) {
                         hwids = key.hwids;
                     }
