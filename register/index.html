@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0"
+/>
+
+<title>
+LEGACY CORE REGISTER
+</title>
+
+<link
+href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+rel="stylesheet"
+/>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    background:
+    radial-gradient(circle at top,#0f172a,#020617);
+
+    min-height:100vh;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    overflow:hidden;
+
+    font-family:'Poppins',sans-serif;
+
+    color:white;
+}
+
+/* BACKGROUND */
+
+.bg{
+
+    position:fixed;
+
+    inset:0;
+
+    overflow:hidden;
+
+    z-index:-1;
+}
+
+.circle{
+
+    position:absolute;
+
+    border-radius:50%;
+
+    background:
+    rgba(0,255,255,0.05);
+
+    animation:
+    float 10s infinite linear;
+}
+
+.circle:nth-child(1){
+
+    width:300px;
+    height:300px;
+
+    left:-100px;
+    top:-100px;
+}
+
+.circle:nth-child(2){
+
+    width:250px;
+    height:250px;
+
+    right:-80px;
+    bottom:-80px;
+}
+
+@keyframes float{
+
+    0%{
+        transform:
+        translateY(0px)
+        rotate(0deg);
+    }
+
+    50%{
+        transform:
+        translateY(-30px)
+        rotate(180deg);
+    }
+
+    100%{
+        transform:
+        translateY(0px)
+        rotate(360deg);
+    }
+}
+
+/* CARD */
+
+.card{
+
+    width:420px;
+
+    background:
+    rgba(15,23,42,0.75);
+
+    border:
+    1px solid rgba(255,255,255,0.08);
+
+    backdrop-filter:
+    blur(18px);
+
+    border-radius:28px;
+
+    padding:40px;
+
+    box-shadow:
+    0 0 50px rgba(0,255,255,0.08);
+
+    position:relative;
+}
+
+.logo{
+
+    text-align:center;
+
+    margin-bottom:35px;
+}
+
+.logo h1{
+
+    font-size:42px;
+
+    font-weight:700;
+
+    background:
+    linear-gradient(
+        90deg,
+        #00f5ff,
+        #00ff88
+    );
+
+    -webkit-background-clip:text;
+
+    -webkit-text-fill-color:
+    transparent;
+}
+
+.logo p{
+
+    margin-top:10px;
+
+    color:#94a3b8;
+
+    font-size:14px;
+}
+
+/* INPUTS */
+
+.group{
+
+    margin-bottom:22px;
+}
+
+.group label{
+
+    display:block;
+
+    margin-bottom:10px;
+
+    color:#cbd5e1;
+
+    font-size:14px;
+
+    font-weight:500;
+}
+
+.input{
+
+    width:100%;
+
+    padding:15px 18px;
+
+    border-radius:16px;
+
+    border:
+    1px solid rgba(255,255,255,0.08);
+
+    background:
+    rgba(255,255,255,0.03);
+
+    color:white;
+
+    font-size:15px;
+
+    outline:none;
+
+    transition:0.3s;
+}
+
+.input:focus{
+
+    border-color:#00f5ff;
+
+    box-shadow:
+    0 0 20px rgba(0,245,255,0.2);
+}
+
+.input::placeholder{
+
+    color:#64748b;
+}
+
+/* BUTTON */
+
+.btn{
+
+    width:100%;
+
+    padding:16px;
+
+    border:none;
+
+    border-radius:18px;
+
+    background:
+    linear-gradient(
+        90deg,
+        #00f5ff,
+        #00ff88
+    );
+
+    color:black;
+
+    font-size:16px;
+
+    font-weight:700;
+
+    cursor:pointer;
+
+    transition:0.3s;
+}
+
+.btn:hover{
+
+    transform:
+    translateY(-2px);
+
+    box-shadow:
+    0 10px 25px rgba(0,255,200,0.2);
+}
+
+/* FOOTER */
+
+.footer{
+
+    margin-top:28px;
+
+    text-align:center;
+
+    color:#94a3b8;
+
+    font-size:14px;
+}
+
+.footer a{
+
+    color:#00f5ff;
+
+    text-decoration:none;
+
+    font-weight:600;
+}
+
+/* MESSAGE */
+
+.message{
+
+    margin-top:18px;
+
+    text-align:center;
+
+    font-size:14px;
+
+    display:none;
+}
+
+.success{
+    color:#00ff88;
+}
+
+.error{
+    color:#ff4d6d;
+}
+
+/* MOBILE */
+
+@media(max-width:500px){
+
+    .card{
+
+        width:92%;
+
+        padding:30px;
+    }
+
+    .logo h1{
+
+        font-size:34px;
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- BG -->
+
+<div class="bg">
+
+    <div class="circle"></div>
+
+    <div class="circle"></div>
+
+</div>
+
+<!-- CARD -->
+
+<div class="card">
+
+    <div class="logo">
+
+        <h1>
+            LEGACY CORE
+        </h1>
+
+        <p>
+            Create Your Account
+        </p>
+
+    </div>
+
+    <!-- USERNAME -->
+
+    <div class="group">
+
+        <label>
+            Username
+        </label>
+
+        <input
+        type="text"
+        id="username"
+        class="input"
+        placeholder="Enter username"
+        />
+
+    </div>
+
+    <!-- PASSWORD -->
+
+    <div class="group">
+
+        <label>
+            Password
+        </label>
+
+        <input
+        type="password"
+        id="password"
+        class="input"
+        placeholder="Enter password"
+        />
+
+    </div>
+
+    <!-- CONFIRM -->
+
+    <div class="group">
+
+        <label>
+            Confirm Password
+        </label>
+
+        <input
+        type="password"
+        id="confirm"
+        class="input"
+        placeholder="Confirm password"
+        />
+
+    </div>
+
+    <!-- REFERRAL -->
+
+    <div class="group">
+
+        <label>
+            Referral Code
+        </label>
+
+        <input
+        type="text"
+        id="referral"
+        class="input"
+        placeholder="Enter referral code"
+        />
+
+    </div>
+
+    <!-- BUTTON -->
+
+    <button
+    class="btn"
+    onclick="register()">
+
+        CREATE ACCOUNT
+
+    </button>
+
+    <!-- MESSAGE -->
+
+    <div
+    id="message"
+    class="message">
+    </div>
+
+    <!-- FOOTER -->
+
+    <div class="footer">
+
+        Already have an account?
+
+        <a href="/login">
+            Login
+        </a>
+
+    </div>
+
+</div>
+
+<script>
+
+async function register(){
+
+    const username =
+    document
+    .getElementById(
+        'username'
+    ).value.trim();
+
+    const password =
+    document
+    .getElementById(
+        'password'
+    ).value.trim();
+
+    const confirm =
+    document
+    .getElementById(
+        'confirm'
+    ).value.trim();
+
+    const referral =
+    document
+    .getElementById(
+        'referral'
+    ).value.trim();
+
+    const message =
+    document
+    .getElementById(
+        'message'
+    );
+
+    message.style.display =
+    'none';
+
+    // VALIDATION
+
+    if(
+        !username ||
+        !password ||
+        !confirm
+    ){
+
+        message.innerHTML =
+        'Fill all required fields';
+
+        message.className =
+        'message error';
+
+        message.style.display =
+        'block';
+
+        return;
+    }
+
+    if(password !== confirm){
+
+        message.innerHTML =
+        'Passwords do not match';
+
+        message.className =
+        'message error';
+
+        message.style.display =
+        'block';
+
+        return;
+    }
+
+    try{
+
+        const res =
+        await fetch(
+
+            '/api/register',
+
+            {
+
+                method:'POST',
+
+                headers:{
+                    'Content-Type':
+                    'application/json'
+                },
+
+                body:JSON.stringify({
+
+                    username,
+                    password,
+                    referral
+                })
+            }
+        );
+
+        const data =
+        await res.json();
+
+        if(data.success){
+
+            message.innerHTML =
+            'Account Created Successfully';
+
+            message.className =
+            'message success';
+
+            message.style.display =
+            'block';
+
+            setTimeout(() => {
+
+                window.location =
+                '/login';
+
+            }, 1500);
+
+        }else{
+
+            message.innerHTML =
+            data.message;
+
+            message.className =
+            'message error';
+
+            message.style.display =
+            'block';
+        }
+
+    }catch(e){
+
+        message.innerHTML =
+        'Server Error';
+
+        message.className =
+        'message error';
+
+        message.style.display =
+        'block';
+    }
+}
+
+</script>
+
+</body>
+</html>
