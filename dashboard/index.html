@@ -170,21 +170,39 @@
             display: flex; gap: 12px; flex-wrap: wrap;
         }
         .top-btn {
-            border: none;
-            background: linear-gradient(135deg, var(--primary) 0%, #00c8d4 100%);
-            color: #000;
-            padding: 12px 22px;
-            border-radius: 12px;
-            cursor: none;
-            font-size: 13px;
-            font-weight: 700;
-            font-family: 'Space Grotesk', sans-serif;
-            letter-spacing: 0.02em;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 240, 255, 0.15);
-        }
+
+    border: none;
+
+    background: linear-gradient(135deg, var(--primary) 0%, #00c8d4 100%);
+
+    color: #000;
+
+    padding: 12px 22px;
+
+    border-radius: 12px;
+
+    cursor: none;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    font-family: 'Space Grotesk', sans-serif;
+
+    letter-spacing: 0.02em;
+
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+    position: relative;
+
+    overflow: hidden;
+
+    box-shadow: 0 4px 20px rgba(0, 240, 255, 0.15);
+
+    pointer-events:auto;
+
+    z-index:9999;
+}
         .top-btn::before {
             content: ''; position: absolute; inset: 0;
             background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 50%);
@@ -484,7 +502,6 @@
             .top-btn, .action-btn { cursor: pointer; }
         }
     </style>
-<base target="_blank">
 </head>
 <body>
 
