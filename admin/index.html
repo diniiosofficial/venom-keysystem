@@ -1023,42 +1023,208 @@
 
         // ===== LOGIN =====
         async function login() {
-            const btn = document.getElementById('loginBtn');
-            const username = document.getElementById('username');
-            const password = document.getElementById('password');
-            const msgError = document.getElementById('msgError');
-            const msgText = document.getElementById('msgText');
-            const toast = document.getElementById('toast');
 
-            btn.classList.add('loading');
-            btn.disabled = true;
-            msgError.classList.remove('show');
-            username.classList.remove('error');
-            password.classList.remove('error');
+    const btn =
+    document.getElementById(
+        'loginBtn'
+    );
 
-            await new Promise(r => setTimeout(r, 800));
+    const username =
+    document.getElementById(
+        'username'
+    );
 
-            if (username.value === 'LegacyDevX' && password.value === 'DineshK2003') {
-                localStorage.setItem('legacy_admin', 'true');
-                toast.classList.add('show');
-                createBurst();
-                setTimeout(() => {
-                    window.location = '/dashboard';
-                }, 1200);
-            } else {
-                msgText.textContent = 'Invalid credentials. Access denied.';
-                msgError.classList.add('show');
-                username.classList.add('error');
-                password.classList.add('error');
-                btn.classList.remove('loading');
-                btn.disabled = false;
+    const password =
+    document.getElementById(
+        'password'
+    );
 
-                card3d.style.animation = 'none';
-                card3d.offsetHeight;
-                card3d.style.animation = 'cardShake 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
-                setTimeout(() => { card3d.style.animation = ''; }, 500);
+    const msgError =
+    document.getElementById(
+        'msgError'
+    );
+
+    const msgText =
+    document.getElementById(
+        'msgText'
+    );
+
+    const toast =
+    document.getElementById(
+        'toast'
+    );
+
+    // RESET
+
+    btn.classList.add(
+        'loading'
+    );
+
+    btn.disabled = true;
+
+    msgError.classList.remove(
+        'show'
+    );
+
+    username.classList.remove(
+        'error'
+    );
+
+    password.classList.remove(
+        'error'
+    );
+
+    try {
+
+        // LOGIN API
+
+        const res =
+        await fetch(
+
+            '/api/login',
+
+            {
+                method:'POST',
+
+                headers:{
+                    'Content-Type':
+                    'application/json'
+                },
+
+                body:JSON.stringify({
+
+                    username:
+                    username.value,
+
+                    password:
+                    password.value
+                })
             }
+        );
+
+        const data =
+        await res.json();
+
+        // SUCCESS
+
+        if(data.success){
+
+            // SAVE TOKEN
+
+            localStorage.setItem(
+
+                'legacy_token',
+
+                data.token
+            );
+
+            localStorage.setItem(
+
+                'legacy_role',
+
+                data.role
+            );
+
+            // SUCCESS TOAST
+
+            toast.classList.add(
+                'show'
+            );
+
+            createBurst();
+
+            // REDIRECT
+
+            setTimeout(() => {
+
+                // OWNER / ADMIN
+
+                if(
+
+                    data.role ===
+                    'owner'
+
+                    ||
+
+                    data.role ===
+                    'admin'
+                ){
+
+                    window.location =
+                    '/dashboard';
+
+                } else {
+
+                    window.location =
+                    '/reseller';
+                }
+
+            }, 1200);
+
+        } else {
+
+            // ERROR
+
+            msgText.textContent =
+
+                data.message ||
+
+                'Invalid credentials.';
+
+            msgError.classList.add(
+                'show'
+            );
+
+            username.classList.add(
+                'error'
+            );
+
+            password.classList.add(
+                'error'
+            );
+
+            btn.classList.remove(
+                'loading'
+            );
+
+            btn.disabled = false;
+
+            // SHAKE EFFECT
+
+            card3d.style.animation =
+            'none';
+
+            card3d.offsetHeight;
+
+            card3d.style.animation =
+            'cardShake 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+
+            setTimeout(() => {
+
+                card3d.style.animation =
+                '';
+
+            }, 500);
         }
+
+    } catch(e){
+
+        msgText.textContent =
+            'Server Error';
+
+        msgError.classList.add(
+            'show'
+        );
+
+        btn.classList.remove(
+            'loading'
+        );
+
+        btn.disabled = false;
+
+        console.log(e);
+    }
+}
 
         document.getElementById('password').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') login();
