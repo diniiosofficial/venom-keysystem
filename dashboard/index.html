@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VENOM DASHBOARD</title>
+    <title>LEGACY CORE DASHBOARD</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -490,7 +490,7 @@
 
     <!-- PRELOADER -->
     <div class="preloader" id="preloader">
-        <div class="preloader-logo">VENOM <span>SYSTEMS</span></div>
+        <div class="preloader-logo">LEGACY <span>CORE</span></div>
         <div class="preloader-bar"></div>
         <div class="preloader-percent" id="preloaderPercent">0%</div>
     </div>
@@ -523,7 +523,7 @@
                     </linearGradient>
                 </defs>
             </svg>
-            VENOM DASHBOARD
+            LEGACY CORE DASHBOARD
         </div>
         <div class="top-buttons">
             <button class="top-btn" onclick="window.location='/generatekey'">
@@ -758,13 +758,13 @@
         }
 
         // ===== ADMIN CHECK =====
-        if (localStorage.getItem("venom_admin") !== "true") {
+        if (localStorage.getItem("legacy_admin") !== "true") {
             window.location = "/admin";
         }
 
         // ===== LOGOUT =====
         function logout() {
-            localStorage.removeItem("venom_admin");
+            localStorage.removeItem("legacy_admin");
             window.location = "/admin";
         }
 
